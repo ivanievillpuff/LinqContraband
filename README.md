@@ -15,19 +15,24 @@
 
 ---
 
-**LinqContraband** is the TSA for your Entity Framework Core queries. It's a Roslyn Analyzer that catches performance
-killers—like client-side evaluation, N+1 risks, and translation failures—at **compile time**, before they crash your
-production environment.
+**LinqContraband** is the TSA for your Entity Framework Core queries. It scans your code as you type and confiscates performance killers—like client-side evaluation, N+1 risks, and sync-over-async—before they ever reach production.
+
+### ⚡ Why use LinqContraband?
+
+*   **Zero Runtime Overhead:** It runs entirely at compile-time. No performance cost to your app.
+*   **Catch Bugs Early:** Fix N+1 queries and Cartesian explosions in the IDE, not during a 3 AM outage.
+*   **Enforce Best Practices:** Acts as an automated code reviewer for your team's data access patterns.
+*   **Universal Support:** Works with VS, Rider, VS Code, and CI/CD pipelines. Compatible with all modern EF Core versions.
 
 ## 🚀 Installation
 
-Install via NuGet:
+Install via NuGet. No configuration required.
 
 ```bash
 dotnet add package LinqContraband
 ```
 
-That's it. The analyzer will immediately start scanning your code for contraband.
+The analyzer will immediately start scanning your code for contraband.
 
 ## 👮‍♂️ The Rules
 
