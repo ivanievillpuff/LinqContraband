@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: write
+
 jobs:
   build:
 
@@ -26,4 +29,25 @@ jobs:
         run: dotnet build --no-restore
 
       - name: Test
-        run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage"
+        run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+      - name: ReportGenerator
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.2.4
+        with:
+          reports: 'coverage/**/coverage.cobertura.xml'
+          targetdir: 'coverage-report'
+          reporttypes: 'Badges'
+
+      - name: Commit Coverage Badge
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p .github/badges
+          cp coverage-report/badge_linecoverage.svg .github/badges/coverage.svg
+          
+          if [[ -n $(git status --porcelain) ]]; then
+            git config --global user.name 'github-actions'
+            git config --global user.email 'github-actions@github.com'
+            git add .github/badges/coverage.svg
+            git commit -m "Update coverage badge"
+            git push
+          fi

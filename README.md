@@ -9,7 +9,8 @@
 [![NuGet](https://img.shields.io/nuget/v/LinqContraband.svg)](https://www.nuget.org/packages/LinqContraband)
 [![Downloads](https://img.shields.io/nuget/dt/LinqContraband.svg)](https://www.nuget.org/packages/LinqContraband)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Build](https://img.shields.io/github/actions/workflow/status/georgewall/LinqContraband/dotnet.yml?label=build)](https://github.com/georgewall/LinqContraband/actions/workflows/dotnet.yml)
+[![Build](https://img.shields.io/github/actions/workflow/status/georgepwall1991/LinqContraband/dotnet.yml?label=build)](https://github.com/georgepwall1991/LinqContraband/actions/workflows/dotnet.yml)
+[![Coverage](https://github.com/georgepwall1991/LinqContraband/blob/main/.github/badges/coverage.svg)](https://github.com/georgepwall1991/LinqContraband/actions/workflows/dotnet.yml)
 
 </div>
 
@@ -254,7 +255,7 @@ dotnet_diagnostic.LC003.severity = warning
 
 ## 🤝 Contributing
 
-Found a new way to smuggle bad queries? [Open an issue](https://github.com/georgewall/LinqContraband/issues) or submit a
+Found a new way to smuggle bad queries? [Open an issue](https://github.com/georgepwall1991/LinqContraband/issues) or submit a
 PR!
 
 License: [MIT](LICENSE)
