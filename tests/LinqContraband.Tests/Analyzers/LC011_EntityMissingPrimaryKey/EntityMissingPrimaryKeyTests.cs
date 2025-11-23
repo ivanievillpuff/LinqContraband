@@ -34,6 +34,11 @@ namespace Microsoft.EntityFrameworkCore
     }
     public class DbSet<T> where T : class {}
     
+    public interface IEntityTypeConfiguration<T> where T : class
+    {
+        void Configure(EntityTypeBuilder<T> builder);
+    }
+
     public class ModelBuilder 
     {
         public EntityTypeBuilder<T> Entity<T>() where T : class => new EntityTypeBuilder<T>();
@@ -71,7 +76,7 @@ namespace TestNamespace
 }";
 
         var expected = VerifyCS.Diagnostic("LC011")
-            .WithSpan(43, 35, 43, 41) // Adjust based on exact line count
+            .WithSpan(48, 35, 48, 41) // Adjust based on exact line count
             .WithArguments("NoKeyEntity");
 
         await VerifyCS.VerifyAnalyzerAsync(test, expected);
@@ -205,5 +210,28 @@ namespace TestNamespace
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
-}
 
+    [Fact]
+    public async Task TestInnocent_EntityWithEntityTypeConfiguration_ShouldNotTrigger()
+    {
+        var test = Usings + MockAttributes + @"
+        public DbSet<ConfigEntity> ConfigEntities { get; set; }
+    }
+
+    public class ConfigEntity
+    {
+        public int ConfigId { get; set; }
+    }
+
+    public class ConfigEntityConfiguration : IEntityTypeConfiguration<ConfigEntity>
+    {
+        public void Configure(EntityTypeBuilder<ConfigEntity> builder)
+        {
+            builder.HasKey(x => x.ConfigId);
+        }
+    }
+}";
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+}

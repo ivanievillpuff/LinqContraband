@@ -44,6 +44,11 @@ namespace LinqContraband.Sample.Data
         /// </summary>
         public DbSet<ValidFluentEntity> ValidFluents { get; set; } = null!;
 
+        /// <summary>
+        /// VALID: Primary Key defined in IEntityTypeConfiguration.
+        /// </summary>
+        public DbSet<ValidConfigurationEntity> ValidConfigurations { get; set; } = null!;
+
         #endregion
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -55,6 +60,9 @@ namespace LinqContraband.Sample.Data
         {
             // Configure Fluent API Key for ValidFluentEntity
             modelBuilder.Entity<ValidFluentEntity>().HasKey(e => e.CodeKey);
+            
+            // Apply separate configuration
+            modelBuilder.ApplyConfiguration(new ValidConfigurationEntityConfiguration());
         }
     }
 

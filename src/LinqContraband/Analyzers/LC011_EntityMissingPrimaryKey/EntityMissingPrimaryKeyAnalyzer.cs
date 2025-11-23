@@ -3,6 +3,7 @@ using LinqContraband.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using System.Linq;
 
 namespace LinqContraband.Analyzers.LC011_EntityMissingPrimaryKey;
 
@@ -14,10 +15,10 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
     private static readonly LocalizableString Title = "Design: Entity missing Primary Key";
 
     private static readonly LocalizableString MessageFormat =
-        "Entity '{0}' does not have a primary key defined by convention (Id, {0}Id), attributes ([Key], [PrimaryKey]), or [Keyless] opt-out";
+        "Entity '{0}' does not have a primary key defined by convention (Id, {0}Id), attributes ([Key], [PrimaryKey]), [Keyless] opt-out, or IEntityTypeConfiguration<T>";
 
     private static readonly LocalizableString Description =
-        "Entities in EF Core require a Primary Key unless marked as [Keyless]. Ensure the entity has a property named 'Id', '{EntityName}Id', a property decorated with [Key], or is configured via Fluent API.";
+        "Entities in EF Core require a Primary Key unless marked as [Keyless]. Ensure the entity has a property named 'Id', '{EntityName}Id', a property decorated with [Key], is configured via Fluent API, or has an IEntityTypeConfiguration<T>.";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticId,
@@ -54,7 +55,7 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
                 var entityType = propType.TypeArguments.Length > 0 ? propType.TypeArguments[0] as INamedTypeSymbol : null;
                 if (entityType == null) continue;
 
-                if (IsMissingPrimaryKey(entityType, namedType))
+                if (IsMissingPrimaryKey(entityType, namedType, context.Compilation))
                 {
                     context.ReportDiagnostic(
                         Diagnostic.Create(Rule, property.Locations[0], entityType.Name));
@@ -63,7 +64,7 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private bool IsMissingPrimaryKey(INamedTypeSymbol entityType, INamedTypeSymbol dbContextType)
+    private bool IsMissingPrimaryKey(INamedTypeSymbol entityType, INamedTypeSymbol dbContextType, Compilation compilation)
     {
         // Heuristic 1: Attributes (Class Level)
         if (HasAttribute(entityType, "KeylessAttribute") || HasAttribute(entityType, "Keyless")) return false;
@@ -74,6 +75,9 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
 
         // Heuristic 3: Fluent API (Basic)
         if (HasFluentKeyConfiguration(dbContextType, entityType)) return false;
+
+        // Heuristic 4: IEntityTypeConfiguration<T>
+        if (HasEntityTypeConfigurationKey(compilation, entityType)) return false;
 
         return true;
     }
@@ -122,27 +126,86 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
         var onModelCreating = methods[0] as IMethodSymbol;
         if (onModelCreating == null) return false;
 
-        // We need to access the syntax of OnModelCreating to find invocations.
-        // Symbols alone don't give us the body operations easily without compilation access
-        // inside a SymbolAction.
-        // BUT, SymbolAnalysisContext doesn't give operation access directly for other methods.
-        // We have to get syntax references.
-
         foreach (var syntaxRef in onModelCreating.DeclaringSyntaxReferences)
         {
             var syntax = syntaxRef.GetSyntax();
-            // Simple textual/syntax check for now as full semantic analysis of the method body 
-            // from a SymbolAction on the class is expensive/complex.
-            // We'll look for invocations of HasKey containing our entity type name.
-            
-            // This is a heuristic approximation.
             var text = syntax.ToString();
             if (text.Contains($"Entity<{entityType.Name}>") && text.Contains("HasKey")) return true;
-            
-            // Also check for non-generic usage: Entity(typeof(T)) ?? tougher to parse stringly.
         }
 
         return false;
+    }
+
+    private bool HasEntityTypeConfigurationKey(Compilation compilation, INamedTypeSymbol entityType)
+    {
+        // Find IEntityTypeConfiguration<T> symbol
+        var interfaceSymbol = compilation.GetTypeByMetadataName("Microsoft.EntityFrameworkCore.IEntityTypeConfiguration`1");
+        if (interfaceSymbol == null) return false;
+
+        var genericInterface = interfaceSymbol.Construct(entityType);
+
+        // Scan types in the compilation that implement this interface
+        // Note: This is expensive on large solutions. We are visiting global namespace types.
+        // Optimization: Only check types that end in "Configuration" or are in same namespace? 
+        // For now, we do a broad search but limit depth or use a visitor if possible. 
+        // Roslyn doesn't have a quick "FindImplementations" without a workspace.
+        // We have to iterate symbols.
+        
+        // Visitor approach to find types
+        var visitor = new TypeCollector();
+        visitor.Visit(compilation.GlobalNamespace);
+        
+        foreach (var type in visitor.Types)
+        {
+             foreach (var iface in type.AllInterfaces)
+             {
+                 if (SymbolEqualityComparer.Default.Equals(iface, genericInterface))
+                 {
+                     // Found a configuration class for this entity.
+                     // Now check its Configure method for HasKey.
+                     if (HasConfigureMethodKey(type)) return true;
+                 }
+             }
+        }
+        
+        return false;
+    }
+
+    private bool HasConfigureMethodKey(INamedTypeSymbol configClass)
+    {
+        var configureMethod = configClass.GetMembers("Configure").FirstOrDefault() as IMethodSymbol;
+        if (configureMethod == null) return false;
+
+        foreach (var syntaxRef in configureMethod.DeclaringSyntaxReferences)
+        {
+            var syntax = syntaxRef.GetSyntax();
+            var text = syntax.ToString();
+            // Check for .HasKey(...) inside Configure method
+            if (text.Contains("HasKey")) return true;
+        }
+        return false;
+    }
+
+    private class TypeCollector : SymbolVisitor
+    {
+        public System.Collections.Generic.List<INamedTypeSymbol> Types { get; } = new();
+
+        public override void VisitNamespace(INamespaceSymbol symbol)
+        {
+            foreach (var member in symbol.GetMembers())
+            {
+                member.Accept(this);
+            }
+        }
+
+        public override void VisitNamedType(INamedTypeSymbol symbol)
+        {
+            Types.Add(symbol);
+            foreach (var member in symbol.GetTypeMembers())
+            {
+                member.Accept(this);
+            }
+        }
     }
 
     private bool IsDbContext(INamedTypeSymbol type)
@@ -176,4 +239,3 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
         return false;
     }
 }
-

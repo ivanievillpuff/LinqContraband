@@ -305,9 +305,16 @@ public class Product
 
 // 3. Fluent API (in OnModelCreating)
 modelBuilder.Entity<Product>().HasKey(p => p.ProductCode);
-```
 
-*Note: This analyzer currently does not detect primary keys configured in separate `IEntityTypeConfiguration<T>` classes. We are working on adding support for this soon.*
+// 4. Separate Configuration (IEntityTypeConfiguration<T>)
+public class ProductConfiguration : IEntityTypeConfiguration<Product>
+{
+    public void Configure(EntityTypeBuilder<Product> builder)
+    {
+        builder.HasKey(p => p.ProductCode);
+    }
+}
+```
 
 ---
 
