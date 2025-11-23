@@ -373,7 +373,7 @@ Use `ExecuteDelete()` for direct SQL execution.
 db.Users.Where(u => u.LastLogin < DateTime.Now.AddYears(-1)).ExecuteDelete();
 ```
 
-**⚠️ Warning:** `ExecuteDelete` bypasses EF Core Change Tracking, so `Deleted` events and client-side cascades won't fire.
+**⚠️ Warning:** `ExecuteDelete` bypasses EF Core Change Tracking, so `Deleted` events and client-side cascades won't fire. This analyzer does not offer an automatic code fix because switching to `ExecuteDelete` changes the semantic behavior of your application (by skipping interceptors and events). You must manually verify it is safe to use.
 
 ---
 
