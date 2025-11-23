@@ -27,12 +27,19 @@ public class AnyOverCountFixer : CodeFixProvider
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        if (root is null) return;
+
         var diagnostic = context.Diagnostics.First();
         var diagnosticSpan = diagnostic.Location.SourceSpan;
 
         // Find the binary expression identified by the diagnostic.
-        var binaryExpr = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<BinaryExpressionSyntax>()
-            .First();
+        var token = root.FindToken(diagnosticSpan.Start);
+        if (token.Parent is null) return;
+
+        var binaryExpr = token.Parent.AncestorsAndSelf().OfType<BinaryExpressionSyntax>()
+            .FirstOrDefault();
+
+        if (binaryExpr == null) return;
 
         context.RegisterCodeFix(
             CodeAction.Create(

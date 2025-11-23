@@ -7,7 +7,7 @@ public static class AnalysisExtensions
     public static bool IsFrameworkMethod(this IMethodSymbol method)
     {
         var ns = method.ContainingNamespace?.ToString();
-        if (string.IsNullOrEmpty(ns)) return false;
+        if (ns is null || ns.Length == 0) return false;
         return ns.StartsWith("System") || ns.StartsWith("Microsoft");
     }
 
