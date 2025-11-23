@@ -30,17 +30,17 @@ namespace LinqContraband.Sample
             // LC001: Local Method
             // This calls a local method inside an IQueryable expression, preventing SQL translation.
             Console.WriteLine("Testing LC001...");
-            var localResult = users.AsEnumerable().Where(u => IsAdult(u.Age)).ToList();
+            var localResult = users.Where(u => IsAdult(u.Age)).ToList();
 
             // LC002: Premature Materialization
             // This calls ToList() (materializing all records) before filtering with Where().
             Console.WriteLine("Testing LC002...");
-            var prematureResult = users.Where(u => u.Age > 20).ToList();
+            var prematureResult = users.ToList().Where(u => u.Age > 20).ToList();
 
             // LC003: Any Over Count
             // This uses Count() > 0 to check existence, which may iterate the whole table.
             Console.WriteLine("Testing LC003...");
-            if (users.Any())
+            if (users.Count() > 0)
             {
                 Console.WriteLine("Users exist");
             }
@@ -48,13 +48,12 @@ namespace LinqContraband.Sample
             // LC004: Guid In Query
             // This generates a new Guid inside the query expression.
             Console.WriteLine("Testing LC004...");
-            var newId = Guid.NewGuid();
-            var guidResult = users.Where(u => u.Id == newId).ToList();
+            var guidResult = users.Where(u => u.Id == Guid.NewGuid()).ToList();
 
             // LC005: Multiple OrderBy
             // This calls OrderBy twice, resetting the first sort instead of chaining with ThenBy.
             Console.WriteLine("Testing LC005...");
-            var orderResult = users.OrderBy(u => u.Age).ThenBy(u => u.Name).ToList();
+            var orderResult = users.OrderBy(u => u.Age).OrderBy(u => u.Name).ToList();
 
             // LC006: Cartesian Explosion
             // This includes multiple collections in a single query without splitting.
