@@ -137,6 +137,27 @@ Chain them properly.
 var query = db.Users.OrderBy(u => u.Name).ThenBy(u => u.Age);
 ```
 
+---
+
+### LC006: Cartesian Explosion Risk
+
+Detects multiple collection inclusions in a single query. This causes a geometric explosion in the result set size (rows = Parents * Children1 * Children2), consuming massive memory and bandwidth.
+
+**❌ The Crime:**
+
+```csharp
+// Fetches Users * Orders * Roles rows.
+var query = db.Users.Include(u => u.Orders).Include(u => u.Roles).ToList();
+```
+
+**✅ The Fix:**
+Use `.AsSplitQuery()` to fetch related data in separate SQL queries.
+
+```csharp
+// Fetches Users, then Orders, then Roles (3 queries).
+var query = db.Users.Include(u => u.Orders).AsSplitQuery().Include(u => u.Roles).ToList();
+```
+
 ## ⚙️ Configuration
 
 You can configure the severity of these rules in your `.editorconfig` file:
