@@ -209,6 +209,33 @@ public async Task<List<User>> GetUsersAsync()
 }
 ```
 
+---
+
+### LC009: The Tracking Tax
+
+Detects read-only queries (no `SaveChanges` called) that return entities without disabling change tracking. EF Core's change tracking snapshots consume significant CPU and memory for no benefit in read-only scenarios.
+
+**❌ The Crime:**
+
+```csharp
+public List<User> GetUsers()
+{
+    // EF Core tracks these entities, but we never modify them.
+    return db.Users.ToList();
+}
+```
+
+**✅ The Fix:**
+Add `.AsNoTracking()` to the query.
+
+```csharp
+public List<User> GetUsers()
+{
+    // Pure read. No tracking overhead.
+    return db.Users.AsNoTracking().ToList();
+}
+```
+
 ## ⚙️ Configuration
 
 You can configure the severity of these rules in your `.editorconfig` file:

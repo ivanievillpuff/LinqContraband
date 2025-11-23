@@ -75,9 +75,21 @@ namespace LinqContraband.Sample
             Console.WriteLine("Testing LC008...");
             var syncBlocker = users.ToList(); // Should trigger LC008 because Main is async
             await Task.Delay(10); // Ensure async method
+
+            // LC009: Missing AsNoTracking
+            // This method returns entities but doesn't use AsNoTracking() and doesn't save changes.
+            Console.WriteLine("Testing LC009...");
+            GetUsersReadOnly(users);
         }
 
         // Local method for LC001
         static bool IsAdult(int age) => age >= 18;
+
+        // LC009 Violation
+        static List<User> GetUsersReadOnly(IQueryable<User> users)
+        {
+            // Violation: Returning entities from read-only context without AsNoTracking
+            return users.Where(u => u.Age > 18).ToList();
+        }
     }
 }
