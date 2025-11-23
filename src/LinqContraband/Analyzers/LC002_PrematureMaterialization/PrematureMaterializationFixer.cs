@@ -53,23 +53,49 @@ public class PrematureMaterializationFixer : CodeFixProvider
         if (!(materializeInvocation.Expression is MemberAccessExpressionSyntax materializeMemberAccess))
             return document;
 
+        // Check if the PARENT of the Filter is ALSO a Materializer (e.g. ToList/ToArray)
+        bool parentIsMaterializer = false;
+        if (invocation.Parent is MemberAccessExpressionSyntax parentMemberAccess &&
+            parentMemberAccess.Parent is InvocationExpressionSyntax)
+        {
+            var name = parentMemberAccess.Name.Identifier.Text;
+            if (name == "ToList" || name == "ToArray")
+            {
+                parentIsMaterializer = true;
+            }
+        }
+
         var source = materializeMemberAccess.Expression;
 
         var newFilterInvocation = invocation.WithExpression(
             memberAccess.WithExpression(source)
         );
 
-        var materializeName = materializeMemberAccess.Name;
+        SyntaxNode newRoot;
 
-        var newRoot = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    newFilterInvocation,
-                    materializeName
-                )
-            ).WithArgumentList(materializeInvocation.ArgumentList)
-            .WithLeadingTrivia(invocation.GetLeadingTrivia())
-            .WithTrailingTrivia(invocation.GetTrailingTrivia());
+        if (parentIsMaterializer)
+        {
+            // If parent is materializer, we don't need to append another one.
+            // Just return the filter invocation: source.Where(...)
+            // The outer parent will handle the materialization.
+            newRoot = newFilterInvocation
+                .WithLeadingTrivia(invocation.GetLeadingTrivia())
+                .WithTrailingTrivia(invocation.GetTrailingTrivia());
+        }
+        else
+        {
+            var materializeName = materializeMemberAccess.Name;
+
+            newRoot = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        newFilterInvocation,
+                        materializeName
+                    )
+                ).WithArgumentList(materializeInvocation.ArgumentList)
+                .WithLeadingTrivia(invocation.GetLeadingTrivia())
+                .WithTrailingTrivia(invocation.GetTrailingTrivia());
+        }
 
         // Add Formatting annotation manually if not working via factory
         newRoot = newRoot.WithAdditionalAnnotations(Formatter.Annotation);

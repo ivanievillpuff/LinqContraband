@@ -8,8 +8,8 @@
 
 [![NuGet](https://img.shields.io/nuget/v/LinqContraband.svg)](https://www.nuget.org/packages/LinqContraband)
 [![Downloads](https://img.shields.io/nuget/dt/LinqContraband.svg)](https://www.nuget.org/packages/LinqContraband)
-[![License](https://img.shields.io/github/license/georgewall/LinqContraband)](LICENSE)
-[![Build Status](https://github.com/georgewall/LinqContraband/actions/workflows/dotnet.yml/badge.svg)](https://github.com/georgewall/LinqContraband/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Build](https://img.shields.io/github/actions/workflow/status/georgewall/LinqContraband/dotnet.yml?label=build)](https://github.com/georgewall/LinqContraband/actions/workflows/dotnet.yml)
 
 </div>
 

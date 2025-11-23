@@ -37,42 +37,41 @@ public class LocalMethodFixer : CodeFixProvider
 
         context.RegisterCodeFix(
             CodeAction.Create(
-                "Extract to variable (Manual semantic fix required)",
-                c => ExtractToVariableAsync(context.Document, invocation, c),
-                "ExtractToVariable"),
+                "Switch to client-side evaluation (AsEnumerable)",
+                c => SwitchToClientSideAsync(context.Document, invocation, c),
+                "SwitchToClientSide"),
             diagnostic);
     }
 
-    private async Task<Document> ExtractToVariableAsync(Document document, InvocationExpressionSyntax invocation,
+    private async Task<Document> SwitchToClientSideAsync(Document document, InvocationExpressionSyntax invocation,
         CancellationToken cancellationToken)
     {
         var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-        var statement = invocation.FirstAncestorOrSelf<StatementSyntax>();
-        if (statement == null) return document;
+        // 1. Find the Lambda containing the local method call
+        var lambda = invocation.FirstAncestorOrSelf<LambdaExpressionSyntax>();
+        if (lambda == null) return document;
 
-        var variableName = "value";
+        // 2. Find the LINQ operator invocation (e.g. .Where(), .Select()) that uses this lambda
+        var queryInvocation = lambda.Parent?.AncestorsAndSelf().OfType<InvocationExpressionSyntax>().FirstOrDefault();
+        if (queryInvocation == null) return document;
 
-        // Create: var value = CalculateAge(u.Dob);
-        var varType = SyntaxFactory.IdentifierName("var");
-        var variableDeclaration = SyntaxFactory.LocalDeclarationStatement(
-                SyntaxFactory.VariableDeclaration(
-                    varType,
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(
-                                SyntaxFactory.Identifier(variableName))
-                            .WithInitializer(
-                                SyntaxFactory.EqualsValueClause(invocation.WithoutTrivia()))
-                    )))
-            .WithTrailingTrivia(SyntaxFactory.EndOfLine("\n")); // Ensure newline matches test expectation on *nix
+        // 3. Check if it is using extension method syntax: source.Where(...)
+        if (queryInvocation.Expression is not MemberAccessExpressionSyntax memberAccess) return document;
 
-        // Replacement: value
-        var replacement = SyntaxFactory.IdentifierName(variableName)
-            .WithLeadingTrivia(invocation.GetLeadingTrivia())
-            .WithTrailingTrivia(invocation.GetTrailingTrivia());
+        var source = memberAccess.Expression;
 
-        editor.InsertBefore(statement, variableDeclaration);
-        editor.ReplaceNode(invocation, replacement);
+        // 4. Create .AsEnumerable() call on the source
+        // construct: source.AsEnumerable()
+        var asEnumerable = SyntaxFactory.MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            source,
+            SyntaxFactory.IdentifierName("AsEnumerable"));
+
+        var asEnumerableInvocation = SyntaxFactory.InvocationExpression(asEnumerable);
+
+        // 5. Replace the original source with the new source
+        editor.ReplaceNode(source, asEnumerableInvocation);
 
         return editor.GetChangedDocument();
     }

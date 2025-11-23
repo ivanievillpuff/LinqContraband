@@ -34,7 +34,7 @@ namespace TestNamespace
 }";
 
     [Fact]
-    public async Task FixCrime_ExtractsToVariable_EvenIfInvalid()
+    public async Task FixCrime_SwitchToClientSideEvaluation()
     {
         var test = Usings + @"
 class Program
@@ -55,8 +55,7 @@ class Program
     void Main()
     {
         var db = new DbContext();
-        var value = CalculateAge(u.Dob);
-        var query = db.Users.Where(u => value > 18);
+        var query = db.Users.AsEnumerable().Where(u => CalculateAge(u.Dob) > 18);
     }
 
     int CalculateAge(DateTime dob) => 0;
@@ -67,7 +66,7 @@ class Program
         {
             TestCode = test,
             FixedCode = fixedCode,
-            CompilerDiagnostics = CompilerDiagnostics.None
+            CompilerDiagnostics = CompilerDiagnostics.Errors // Allow errors if any, though this should be valid
         };
 
         testObj.ExpectedDiagnostics.Add(new DiagnosticResult("LC001", DiagnosticSeverity.Warning)

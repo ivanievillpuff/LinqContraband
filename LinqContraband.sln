@@ -17,6 +17,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{5D20AA90-6969-D8BD-9DCD-8634F4692FDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqContraband.Sample", "samples\LinqContraband.Sample\LinqContraband.Sample.csproj", "{BE8C692E-90BD-4F68-A353-530F3DD4E036}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +55,18 @@ Global
 		{FF55B03C-3890-46CA-8554-E2AC7ED686E1}.Release|x64.Build.0 = Release|Any CPU
 		{FF55B03C-3890-46CA-8554-E2AC7ED686E1}.Release|x86.ActiveCfg = Release|Any CPU
 		{FF55B03C-3890-46CA-8554-E2AC7ED686E1}.Release|x86.Build.0 = Release|Any CPU
+		{BE8C692E-90BD-4F68-A353-530F3DD4E036}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE8C692E-90BD-4F68-A353-530F3DD4E036}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE8C692E-90BD-4F68-A353-530F3DD4E036}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BE8C692E-90BD-4F68-A353-530F3DD4E036}.Debug|x64.Build.0 = Debug|Any CPU
+		{BE8C692E-90BD-4F68-A353-530F3DD4E036}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BE8C692E-90BD-4F68-A353-530F3DD4E036}.Debug|x86.Build.0 = Debug|Any CPU
+		{BE8C692E-90BD-4F68-A353-530F3DD4E036}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE8C692E-90BD-4F68-A353-530F3DD4E036}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE8C692E-90BD-4F68-A353-530F3DD4E036}.Release|x64.ActiveCfg = Release|Any CPU
+		{BE8C692E-90BD-4F68-A353-530F3DD4E036}.Release|x64.Build.0 = Release|Any CPU
+		{BE8C692E-90BD-4F68-A353-530F3DD4E036}.Release|x86.ActiveCfg = Release|Any CPU
+		{BE8C692E-90BD-4F68-A353-530F3DD4E036}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -58,5 +74,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{587BFFC2-D0E5-4606-8EC3-359613878759} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{FF55B03C-3890-46CA-8554-E2AC7ED686E1} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{BE8C692E-90BD-4F68-A353-530F3DD4E036} = {5D20AA90-6969-D8BD-9DCD-8634F4692FDA}
 	EndGlobalSection
 EndGlobal

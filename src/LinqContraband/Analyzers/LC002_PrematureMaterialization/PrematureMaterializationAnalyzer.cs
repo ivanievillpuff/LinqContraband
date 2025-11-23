@@ -81,7 +81,7 @@ public class PrematureMaterializationAnalyzer : DiagnosticAnalyzer
 
     private bool IsMaterializingMethod(IMethodSymbol method)
     {
-        return (method.Name == "ToList" || method.Name == "ToArray" || method.Name == "AsEnumerable") &&
+        return (method.Name == "ToList" || method.Name == "ToArray") &&
                method.ContainingNamespace?.ToString() == "System.Linq";
     }
 }
