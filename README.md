@@ -158,6 +158,30 @@ Use `.AsSplitQuery()` to fetch related data in separate SQL queries.
 var query = db.Users.Include(u => u.Orders).AsSplitQuery().Include(u => u.Roles).ToList();
 ```
 
+---
+
+### LC007: N+1 Looper
+
+Detects database queries executed inside loops. This kills performance by executing a separate database roundtrip for every iteration (e.g., 100 items = 100 queries).
+
+**❌ The Crime:**
+
+```csharp
+foreach (var id in ids)
+{
+    // Executes 1 query per ID. Latency kills you here.
+    var user = db.Users.Find(id);
+}
+```
+
+**✅ The Fix:**
+Fetch data in bulk outside the loop.
+
+```csharp
+// Executes 1 query for all IDs.
+var users = db.Users.Where(u => ids.Contains(u.Id)).ToList();
+```
+
 ## ⚙️ Configuration
 
 You can configure the severity of these rules in your `.editorconfig` file:

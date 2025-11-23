@@ -59,6 +59,15 @@ namespace LinqContraband.Sample
             // This includes multiple collections in a single query without splitting.
             Console.WriteLine("Testing LC006...");
             var cartesianResult = users.Include(u => u.Orders).Include(u => u.Roles).ToList();
+
+            // LC007: N+1 Looper
+            // This executes a database query inside a loop.
+            Console.WriteLine("Testing LC007...");
+            var targetIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
+            foreach (var id in targetIds)
+            {
+                var user = users.Where(u => u.Id == id).ToList();
+            }
         }
 
         // Local method for LC001
