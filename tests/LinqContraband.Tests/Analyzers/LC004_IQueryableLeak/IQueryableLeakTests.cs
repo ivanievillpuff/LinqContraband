@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<LinqContraband.Analyzers.LC004_IQueryableLeak.IQueryableLeakAnalyzer>;
 
 namespace LinqContraband.Tests.Analyzers.LC004_IQueryableLeak

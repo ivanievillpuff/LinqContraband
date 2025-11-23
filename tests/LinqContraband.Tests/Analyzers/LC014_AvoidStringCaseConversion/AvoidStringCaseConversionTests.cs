@@ -1,0 +1,210 @@
+using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+    LinqContraband.Analyzers.LC014_AvoidStringCaseConversion.AvoidStringCaseConversionAnalyzer>;
+
+namespace LinqContraband.Tests.Analyzers.LC014_AvoidStringCaseConversion;
+
+public class AvoidStringCaseConversionTests
+{
+    private const string Usings = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+";
+
+    private const string TestClasses = @"
+namespace LinqContraband.Test
+{
+    public class User
+    {
+        public string Name { get; set; }
+        public Address Address { get; set; }
+    }
+
+    public class Address
+    {
+        public string City { get; set; }
+    }
+}
+";
+
+    [Fact]
+    public async Task ToLower_InWhereClause_ShouldTrigger()
+    {
+        var test = Usings + TestClasses + @"
+namespace LinqContraband.Test
+{
+    public class TestClass
+    {
+        public void TestMethod()
+        {
+            var query = new List<User>().AsQueryable();
+            var result = query.Where(u => {|LC014:u.Name.ToLower()|} == ""test"");
+        }
+    }
+}";
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ToUpper_InWhereClause_ShouldTrigger()
+    {
+        var test = Usings + TestClasses + @"
+namespace LinqContraband.Test
+{
+    public class TestClass
+    {
+        public void TestMethod()
+        {
+            var query = new List<User>().AsQueryable();
+            var result = query.Where(u => {|LC014:u.Name.ToUpper()|} == ""test"");
+        }
+    }
+}";
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ToLowerInvariant_InOrderBy_ShouldTrigger()
+    {
+        var test = Usings + TestClasses + @"
+namespace LinqContraband.Test
+{
+    public class TestClass
+    {
+        public void TestMethod()
+        {
+            var query = new List<User>().AsQueryable();
+            var result = query.OrderBy(u => {|LC014:u.Name.ToLowerInvariant()|});
+        }
+    }
+}";
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task NestedProperty_ToLower_ShouldTrigger()
+    {
+        var test = Usings + TestClasses + @"
+namespace LinqContraband.Test
+{
+    public class TestClass
+    {
+        public void TestMethod()
+        {
+            var query = new List<User>().AsQueryable();
+            var result = query.Where(u => {|LC014:u.Address.City.ToLower()|} == ""ny"");
+        }
+    }
+}";
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ConstantToLower_ShouldNotTrigger()
+    {
+        var test = Usings + TestClasses + @"
+namespace LinqContraband.Test
+{
+    public class TestClass
+    {
+        public void TestMethod()
+        {
+            var query = new List<User>().AsQueryable();
+            // ""test"".ToLower() is a constant expression, not on the column.
+            var result = query.Where(u => u.Name == ""TEST"".ToLower());
+        }
+    }
+}";
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LocalVariableToLower_ShouldNotTrigger()
+    {
+        var test = Usings + TestClasses + @"
+namespace LinqContraband.Test
+{
+    public class TestClass
+    {
+        public void TestMethod()
+        {
+            var search = ""TEST"";
+            var query = new List<User>().AsQueryable();
+            // search.ToLower() executes on client before query or as constant.
+            var result = query.Where(u => u.Name == search.ToLower());
+        }
+    }
+}";
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task EnumerableWhere_ShouldNotTrigger()
+    {
+        var test = Usings + TestClasses + @"
+namespace LinqContraband.Test
+{
+    public class TestClass
+    {
+        public void TestMethod()
+        {
+            var list = new List<User>();
+            // Enumerable.Where executes in memory, so index usage is irrelevant.
+            var result = list.Where(u => u.Name.ToLower() == ""test"");
+        }
+    }
+}";
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    /*
+    // Null propagation is not supported in Expression Trees by the C# compiler (CS8072),
+    // so this code is technically impossible to write for IQueryable.
+    [Fact]
+    public async Task NullPropagation_ShouldTrigger()
+    {
+        // ...
+    }
+    */
+
+    [Fact]
+    public async Task Coalesce_ShouldTrigger()
+    {
+        // Failing Case 2: Coalesce operator
+        var test = Usings + TestClasses + @"
+namespace LinqContraband.Test
+{
+    public class TestClass
+    {
+        public void TestMethod()
+        {
+            var query = new List<User>().AsQueryable();
+            var result = query.Where(u => {|LC014:(u.Name ?? """").ToLower()|} == ""test"");
+        }
+    }
+}";
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task NestedHelperCall_ShouldTrigger()
+    {
+        // Failing Case 3: Nested inside another method call
+        var test = Usings + TestClasses + @"
+namespace LinqContraband.Test
+{
+    public class TestClass
+    {
+        public bool MyHelper(string s) => true;
+
+        public void TestMethod()
+        {
+            var query = new List<User>().AsQueryable();
+            // The ToLower is an argument to MyHelper, which is the argument to Where
+            var result = query.Where(u => MyHelper({|LC014:u.Name.ToLower()|}));
+        }
+    }
+}";
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+}

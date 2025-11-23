@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using LinqContraband.Sample.Data;
 using LinqContraband.Sample.Samples.LC001_LocalMethod;
 using LinqContraband.Sample.Samples.LC002_PrematureMaterialization;
@@ -15,6 +11,7 @@ using LinqContraband.Sample.Samples.LC009_MissingAsNoTracking;
 using LinqContraband.Sample.Samples.LC010_SaveChangesInLoop;
 using LinqContraband.Sample.Samples.LC011_EntityMissingPrimaryKey;
 using LinqContraband.Sample.Samples.LC012_OptimizeRemoveRange;
+using LinqContraband.Sample.Samples.LC014_AvoidStringCaseConversion;
 
 namespace LinqContraband.Sample
 {
@@ -40,6 +37,10 @@ namespace LinqContraband.Sample
             SaveChangesInLoopSample.Run(users);
             EntityMissingPrimaryKeySample.Run();
             OptimizeRemoveRangeSample.Run();
+
+            // LC014: AvoidStringCaseConversion
+            using var db = new AppDbContext();
+            AvoidStringCaseConversionSample.Run(db);
         }
     }
 }

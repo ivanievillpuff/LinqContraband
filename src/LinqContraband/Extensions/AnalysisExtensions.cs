@@ -33,8 +33,22 @@ public static class AnalysisExtensions
     public static IOperation UnwrapConversions(this IOperation operation)
     {
         var current = operation;
-        while (current is IConversionOperation conversion)
-            current = conversion.Operand;
+        while (true)
+        {
+            if (current is IConversionOperation conversion)
+            {
+                current = conversion.Operand;
+                continue;
+            }
+            
+            if (current is IParenthesizedOperation parenthesized)
+            {
+                current = parenthesized.Operand;
+                continue;
+            }
+            
+            break;
+        }
         return current;
     }
 

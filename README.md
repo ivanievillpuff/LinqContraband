@@ -432,6 +432,34 @@ public List<User> GetUsers(bool adultsOnly)
 }
 ```
 
+
+---
+
+### LC014: Avoid String Case Conversion in Queries
+
+Using `ToLower()` or `ToUpper()` inside a LINQ query (e.g., `Where` clause) prevents the database from using an index on that column. This forces a full table scan, which is significantly slower for large datasets.
+
+**👶 Explain it like I'm a ten year old:** Imagine looking for "John" in a phone book. If you look for "John", you can jump straight to 'J'. But if you decide to convert every single name in the book to lowercase first, you have to read *every single name* from A to Z to check if it matches "john".
+
+**❌ The Crime:**
+
+```csharp
+// Forces a full table scan because the index on 'Name' cannot be used.
+var user = db.Users.Where(u => u.Name.ToLower() == "john").FirstOrDefault();
+```
+
+**✅ The Fix:**
+
+Use `string.Equals` with a case-insensitive comparison, or configure the database collation to be case-insensitive.
+
+```csharp
+// 1. Use string.Equals (translated to efficient SQL if supported)
+var user = db.Users.Where(u => string.Equals(u.Name, "john", StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+
+// 2. Or, rely on DB collation (if case-insensitive by default)
+var user = db.Users.Where(u => u.Name == "john").FirstOrDefault();
+```
+
 ---
 
 ## ⚙️ Configuration

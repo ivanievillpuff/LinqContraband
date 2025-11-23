@@ -1,6 +1,3 @@
-using System;
-using LinqContraband.Sample.Data;
-
 namespace LinqContraband.Sample.Samples.LC011_EntityMissingPrimaryKey
 {
     /// <summary>

@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using LinqContraband.Sample.Data;
 
 namespace LinqContraband.Sample.Samples.LC002_PrematureMaterialization
@@ -9,12 +7,12 @@ namespace LinqContraband.Sample.Samples.LC002_PrematureMaterialization
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <strong>The Crime:</strong> Calling a materializing method (like <c>ToList()</c>, <c>AsEnumerable()</c>, or <c>ToArray()</c>) 
+    /// <strong>The Crime:</strong> Calling a materializing method (like <c>ToList()</c>, <c>AsEnumerable()</c>, or <c>ToArray()</c>)
     /// <em>before</em> applying filtering logic (like <c>Where()</c>).
     /// </para>
     /// <para>
-    /// <strong>Why it's bad:</strong> This fetches the entire table (or a larger result set than needed) 
-    /// from the database into application memory before filtering. This wastes network bandwidth, 
+    /// <strong>Why it's bad:</strong> This fetches the entire table (or a larger result set than needed)
+    /// from the database into application memory before filtering. This wastes network bandwidth,
     /// memory, and CPU, effectively acting as a "SELECT *" on the table.
     /// </para>
     /// <para>

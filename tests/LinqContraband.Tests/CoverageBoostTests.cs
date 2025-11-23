@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Testing;
 using VerifyCS_LC006 = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<LinqContraband.Analyzers.LC006_CartesianExplosion.CartesianExplosionAnalyzer>;
 using VerifyCS_LC007 = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<LinqContraband.Analyzers.LC007_NPlusOneLooper.NPlusOneLooperAnalyzer>;
 using VerifyCS_LC008 = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<LinqContraband.Analyzers.LC008_SyncBlocker.SyncBlockerAnalyzer>;

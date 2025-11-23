@@ -1,8 +1,6 @@
 using System.Collections.Immutable;
-using LinqContraband.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
 using System.Linq;
 
 namespace LinqContraband.Analyzers.LC011_EntityMissingPrimaryKey;

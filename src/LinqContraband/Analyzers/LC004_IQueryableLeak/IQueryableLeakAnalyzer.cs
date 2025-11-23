@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Linq;
 using LinqContraband.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -55,7 +54,7 @@ public class IQueryableLeakAnalyzer : DiagnosticAnalyzer
 
             var paramType = argument.Parameter.Type;
             var argValue = argument.Value;
-            
+
             // Check if parameter is IEnumerable<T> but NOT IQueryable<T>
             if (!IsIEnumerable(paramType) || IsIQueryable(paramType)) continue;
 
@@ -64,8 +63,8 @@ public class IQueryableLeakAnalyzer : DiagnosticAnalyzer
             if (IsSourceIQueryable(argValue))
             {
                 context.ReportDiagnostic(
-                    Diagnostic.Create(Rule, argument.Syntax.GetLocation(), 
-                        argument.Parameter.Name, 
+                    Diagnostic.Create(Rule, argument.Syntax.GetLocation(),
+                        argument.Parameter.Name,
                         paramType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)));
             }
         }
@@ -75,19 +74,19 @@ public class IQueryableLeakAnalyzer : DiagnosticAnalyzer
     {
         if (type.SpecialType == SpecialType.System_Collections_IEnumerable) return true;
         if (type.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T) return true;
-        
+
         // Check by name for robustness (especially in tests/mocks)
         if (type.Name == "IEnumerable" && type.ContainingNamespace?.ToString() == "System.Collections.Generic") return true;
         if (type.Name == "IEnumerable" && type.ContainingNamespace?.ToString() == "System.Collections") return true;
-        
+
         foreach (var i in type.AllInterfaces)
         {
-             if (i.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T || 
+             if (i.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
                  i.SpecialType == SpecialType.System_Collections_IEnumerable) return true;
-             
+
              if (i.Name == "IEnumerable" && i.ContainingNamespace?.ToString() == "System.Collections.Generic") return true;
         }
-        
+
         return false;
     }
 
@@ -99,7 +98,7 @@ public class IQueryableLeakAnalyzer : DiagnosticAnalyzer
     private bool IsSourceIQueryable(IOperation operation)
     {
         var current = operation;
-        
+
         // Walk back conversions to find the real source
         while (current is IConversionOperation conv)
         {

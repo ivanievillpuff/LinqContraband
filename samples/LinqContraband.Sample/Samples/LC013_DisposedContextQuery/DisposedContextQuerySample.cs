@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using LinqContraband.Sample.Data;
 
 namespace LinqContraband.Sample.Samples.LC013_DisposedContextQuery
@@ -9,21 +7,21 @@ namespace LinqContraband.Sample.Samples.LC013_DisposedContextQuery
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <strong>The Crime:</strong> Returning a deferred query (e.g., <c>IQueryable</c>, <c>IAsyncEnumerable</c>) 
+    /// <strong>The Crime:</strong> Returning a deferred query (e.g., <c>IQueryable</c>, <c>IAsyncEnumerable</c>)
     /// that was built from a <c>DbContext</c> which is disposed within the same scope (e.g., via <c>using</c>).
     /// </para>
     /// <para>
-    /// <strong>Why it's bad:</strong> EF Core queries are deferred execution. They don't run when you define them; 
-    /// they run when you iterate them. If you return the query, the caller will try to iterate it later. 
-    /// By that time, the <c>using</c> block has finished, and the <c>DbContext</c> is disposed. 
+    /// <strong>Why it's bad:</strong> EF Core queries are deferred execution. They don't run when you define them;
+    /// they run when you iterate them. If you return the query, the caller will try to iterate it later.
+    /// By that time, the <c>using</c> block has finished, and the <c>DbContext</c> is disposed.
     /// This causes an <c>ObjectDisposedException</c> or other runtime failures.
     /// </para>
     /// <para>
-    /// <strong>Advanced Detection:</strong> This analyzer also detects these time bombs hiding inside 
+    /// <strong>Advanced Detection:</strong> This analyzer also detects these time bombs hiding inside
     /// conditional operators (<c>? :</c>), null-coalescing operators (<c>??</c>), and switch expressions.
     /// </para>
     /// <para>
-    /// <strong>The Fix:</strong> Materialize the result (e.g., <c>ToList()</c>, <c>ToArray()</c>) while the context 
+    /// <strong>The Fix:</strong> Materialize the result (e.g., <c>ToList()</c>, <c>ToArray()</c>) while the context
     /// is still alive, or ensure the context's lifetime is managed externally (e.g., via dependency injection).
     /// </para>
     /// </remarks>
@@ -48,8 +46,8 @@ namespace LinqContraband.Sample.Samples.LC013_DisposedContextQuery
         {
             using var db = new AppDbContext();
             // VIOLATION: Both branches return a query from the disposed context.
-            return filterAdults 
-                ? db.Users.Where(u => u.Age >= 18) 
+            return filterAdults
+                ? db.Users.Where(u => u.Age >= 18)
                 : db.Users;
         }
 
@@ -70,11 +68,11 @@ namespace LinqContraband.Sample.Samples.LC013_DisposedContextQuery
         public List<User> GetUsers_Valid()
         {
             using var db = new AppDbContext();
-            // SAFE: Materialized before return using ToList(). 
+            // SAFE: Materialized before return using ToList().
             // The data is fetched while 'db' is alive.
             return db.Users.Where(u => u.Age > 18).ToList();
         }
-        
+
         /// <summary>
         /// Demonstrates the correct approach (External Context).
         /// </summary>

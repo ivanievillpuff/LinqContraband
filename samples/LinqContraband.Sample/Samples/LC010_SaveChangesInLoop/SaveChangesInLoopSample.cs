@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using LinqContraband.Sample.Data;
 
 namespace LinqContraband.Sample.Samples.LC010_SaveChangesInLoop

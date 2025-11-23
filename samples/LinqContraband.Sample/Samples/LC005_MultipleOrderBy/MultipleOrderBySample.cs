@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using LinqContraband.Sample.Data;
 
 namespace LinqContraband.Sample.Samples.LC005_MultipleOrderBy
@@ -12,7 +10,7 @@ namespace LinqContraband.Sample.Samples.LC005_MultipleOrderBy
     /// <strong>The Crime:</strong> Calling <c>OrderBy</c> (or <c>OrderByDescending</c>) multiple times in a row.
     /// </para>
     /// <para>
-    /// <strong>Why it's bad:</strong> This is a logic bug. The second <c>OrderBy</c> call completely 
+    /// <strong>Why it's bad:</strong> This is a logic bug. The second <c>OrderBy</c> call completely
     /// <em>replaces</em> the first sort order, rather than refining it. The database will only sort by the last field specified.
     /// </para>
     /// <para>

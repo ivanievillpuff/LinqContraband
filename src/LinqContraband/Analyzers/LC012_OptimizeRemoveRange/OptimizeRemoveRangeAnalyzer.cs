@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using LinqContraband.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -57,7 +56,7 @@ public class OptimizeRemoveRangeAnalyzer : DiagnosticAnalyzer
         var current = type;
         while (current != null)
         {
-            if (current.Name == "DbSet" && 
+            if (current.Name == "DbSet" &&
                 (current.ContainingNamespace?.ToString() == "Microsoft.EntityFrameworkCore" ||
                  current.ContainingNamespace?.ToString() == "TestNamespace")) // Support mock in tests
                 return true;
@@ -71,7 +70,7 @@ public class OptimizeRemoveRangeAnalyzer : DiagnosticAnalyzer
         var current = type;
         while (current != null)
         {
-            if (current.Name == "DbContext" && 
+            if (current.Name == "DbContext" &&
                 (current.ContainingNamespace?.ToString() == "Microsoft.EntityFrameworkCore" ||
                  current.ContainingNamespace?.ToString() == "TestNamespace")) // Support mock in tests
                 return true;
