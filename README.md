@@ -31,6 +31,49 @@ var query = db.Users.ToList().Where(u => u.Age > 18);
 var query = db.Users.Where(u => u.Age > 18).ToList();
 ```
 
+### LC003: Prefer Any() over Count() > 0
+Detects usage of `Count() > 0` or `0 < Count()` to check for existence.
+
+**The Crime:**
+```csharp
+// Iterates the entire result set to count elements.
+var hasUsers = db.Users.Count() > 0;
+```
+
+**The Fix:** Use `Any()` which returns as soon as a match is found.
+```csharp
+var hasUsers = db.Users.Any();
+```
+
+### LC004: Avoid Guid generation inside IQueryable
+Detects `Guid.NewGuid()` or `new Guid(...)` inside `IQueryable` expressions.
+
+**The Crime:**
+```csharp
+// May fail translation or cause client-side evaluation.
+var query = db.Users.Where(u => u.Id == Guid.NewGuid());
+```
+
+**The Fix:** Generate the Guid outside the query.
+```csharp
+var newId = Guid.NewGuid();
+var query = db.Users.Where(u => u.Id == newId);
+```
+
+### LC005: Multiple OrderBy calls
+Detects consecutive `OrderBy` or `OrderByDescending` calls, which resets the sorting.
+
+**The Crime:**
+```csharp
+// The first OrderBy is ignored/overwritten by the second one.
+var query = db.Users.OrderBy(u => u.Name).OrderBy(u => u.Age);
+```
+
+**The Fix:** Use `ThenBy` or `ThenByDescending` to chain sorts.
+```csharp
+var query = db.Users.OrderBy(u => u.Name).ThenBy(u => u.Age);
+```
+
 ## Installation
 
 Install via NuGet (Package generation coming soon).
