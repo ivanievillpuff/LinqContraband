@@ -54,15 +54,12 @@ public class PrematureMaterializationFixer : CodeFixProvider
             return document;
 
         // Check if the PARENT of the Filter is ALSO a Materializer (e.g. ToList/ToArray)
-        bool parentIsMaterializer = false;
+        var parentIsMaterializer = false;
         if (invocation.Parent is MemberAccessExpressionSyntax parentMemberAccess &&
             parentMemberAccess.Parent is InvocationExpressionSyntax)
         {
             var name = parentMemberAccess.Name.Identifier.Text;
-            if (name == "ToList" || name == "ToArray")
-            {
-                parentIsMaterializer = true;
-            }
+            if (name == "ToList" || name == "ToArray") parentIsMaterializer = true;
         }
 
         var source = materializeMemberAccess.Expression;

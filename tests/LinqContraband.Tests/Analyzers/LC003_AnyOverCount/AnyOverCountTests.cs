@@ -1,6 +1,5 @@
-using VerifyCS =
-    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
-        LinqContraband.Analyzers.LC003_AnyOverCount.AnyOverCountAnalyzer>;
+using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+    LinqContraband.Analyzers.LC003_AnyOverCount.AnyOverCountAnalyzer>;
 
 namespace LinqContraband.Tests.Analyzers.LC003_AnyOverCount;
 

@@ -1,6 +1,5 @@
-using VerifyCS =
-    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
-        LinqContraband.Analyzers.LC001_LocalMethod.LocalMethodAnalyzer>;
+using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+    LinqContraband.Analyzers.LC001_LocalMethod.LocalMethodAnalyzer>;
 
 namespace LinqContraband.Tests.Analyzers.LC001_LocalMethod;
 

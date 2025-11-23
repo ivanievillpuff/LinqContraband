@@ -1,10 +1,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
-using CodeFixTest =
-    Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<
-        LinqContraband.Analyzers.LC001_LocalMethod.LocalMethodAnalyzer,
-        LinqContraband.Analyzers.LC001_LocalMethod.LocalMethodFixer,
-        Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<
+    LinqContraband.Analyzers.LC001_LocalMethod.LocalMethodAnalyzer,
+    LinqContraband.Analyzers.LC001_LocalMethod.LocalMethodFixer,
+    Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
 
 namespace LinqContraband.Tests.Analyzers.LC001_LocalMethod;
 

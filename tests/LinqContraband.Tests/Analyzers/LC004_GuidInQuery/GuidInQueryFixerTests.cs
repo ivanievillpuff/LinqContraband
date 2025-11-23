@@ -1,9 +1,8 @@
 using Microsoft.CodeAnalysis.Testing;
-using CodeFixTest =
-    Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<
-        LinqContraband.Analyzers.LC004_GuidInQuery.GuidInQueryAnalyzer,
-        LinqContraband.Analyzers.LC004_GuidInQuery.GuidInQueryFixer,
-        Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<
+    LinqContraband.Analyzers.LC004_GuidInQuery.GuidInQueryAnalyzer,
+    LinqContraband.Analyzers.LC004_GuidInQuery.GuidInQueryFixer,
+    Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
 
 namespace LinqContraband.Tests.Analyzers.LC004_GuidInQuery;
 

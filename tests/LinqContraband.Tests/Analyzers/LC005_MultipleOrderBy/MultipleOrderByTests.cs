@@ -1,9 +1,3 @@
-using System.Threading.Tasks;
-using LinqContraband.Analyzers.LC005_MultipleOrderBy;
-using Microsoft.CodeAnalysis.CSharp.Testing;
-using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
     LinqContraband.Analyzers.LC005_MultipleOrderBy.MultipleOrderByAnalyzer,
     LinqContraband.Analyzers.LC005_MultipleOrderBy.MultipleOrderByCodeFixProvider>;

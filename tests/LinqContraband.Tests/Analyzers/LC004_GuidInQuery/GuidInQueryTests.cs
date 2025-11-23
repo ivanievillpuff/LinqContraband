@@ -1,6 +1,5 @@
-using VerifyCS =
-    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
-        LinqContraband.Analyzers.LC004_GuidInQuery.GuidInQueryAnalyzer>;
+using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+    LinqContraband.Analyzers.LC004_GuidInQuery.GuidInQueryAnalyzer>;
 
 namespace LinqContraband.Tests.Analyzers.LC004_GuidInQuery;
 

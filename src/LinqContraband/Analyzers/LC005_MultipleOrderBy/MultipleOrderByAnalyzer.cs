@@ -1,9 +1,8 @@
 using System.Collections.Immutable;
-using LinqContraband.Extensions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace LinqContraband.Analyzers.LC005_MultipleOrderBy;
 
@@ -67,7 +66,7 @@ public class MultipleOrderByAnalyzer : DiagnosticAnalyzer
     {
         return (method.Name == "OrderBy" || method.Name == "OrderByDescending") &&
                (method.ContainingType.Name == "Enumerable" || method.ContainingType.Name == "Queryable") &&
-               (method.ContainingNamespace?.ToString() == "System.Linq");
+               method.ContainingNamespace?.ToString() == "System.Linq";
     }
 
     private bool IsSortMethod(IMethodSymbol method)
@@ -75,6 +74,6 @@ public class MultipleOrderByAnalyzer : DiagnosticAnalyzer
         return (method.Name == "OrderBy" || method.Name == "OrderByDescending" ||
                 method.Name == "ThenBy" || method.Name == "ThenByDescending") &&
                (method.ContainingType.Name == "Enumerable" || method.ContainingType.Name == "Queryable") &&
-               (method.ContainingNamespace?.ToString() == "System.Linq");
+               method.ContainingNamespace?.ToString() == "System.Linq";
     }
 }

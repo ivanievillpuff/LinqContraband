@@ -1,9 +1,8 @@
 using Microsoft.CodeAnalysis.Testing;
-using CodeFixTest =
-    Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<
-        LinqContraband.Analyzers.LC003_AnyOverCount.AnyOverCountAnalyzer,
-        LinqContraband.Analyzers.LC003_AnyOverCount.AnyOverCountFixer,
-        Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<
+    LinqContraband.Analyzers.LC003_AnyOverCount.AnyOverCountAnalyzer,
+    LinqContraband.Analyzers.LC003_AnyOverCount.AnyOverCountFixer,
+    Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
 
 namespace LinqContraband.Tests.Analyzers.LC003_AnyOverCount;
 

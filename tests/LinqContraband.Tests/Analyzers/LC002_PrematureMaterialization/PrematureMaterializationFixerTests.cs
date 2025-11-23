@@ -1,10 +1,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
-using CodeFixTest =
-    Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<
-        LinqContraband.Analyzers.LC002_PrematureMaterialization.PrematureMaterializationAnalyzer,
-        LinqContraband.Analyzers.LC002_PrematureMaterialization.PrematureMaterializationFixer,
-        Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<
+    LinqContraband.Analyzers.LC002_PrematureMaterialization.PrematureMaterializationAnalyzer,
+    LinqContraband.Analyzers.LC002_PrematureMaterialization.PrematureMaterializationFixer,
+    Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
 
 namespace LinqContraband.Tests.Analyzers.LC002_PrematureMaterialization;
 
@@ -59,9 +58,9 @@ class Program
         var testObj = new CodeFixTest
         {
             TestCode = test,
-            FixedCode = fixedCode,
+            FixedCode = fixedCode
         };
-        
+
         // Expect diagnostic on the whole 'db.Users.ToList().Where(...)' expression
         testObj.ExpectedDiagnostics.Add(new DiagnosticResult("LC002", DiagnosticSeverity.Warning)
             .WithSpan(12, 21, 12, 61)
@@ -100,7 +99,7 @@ class Program
         var testObj = new CodeFixTest
         {
             TestCode = test,
-            FixedCode = fixedCode,
+            FixedCode = fixedCode
         };
 
         // Diagnostic is on the inner expression: db.Users.ToList().Where(...)
@@ -140,7 +139,7 @@ class Program
         var testObj = new CodeFixTest
         {
             TestCode = test,
-            FixedCode = fixedCode,
+            FixedCode = fixedCode
         };
 
         testObj.ExpectedDiagnostics.Add(new DiagnosticResult("LC002", DiagnosticSeverity.Warning)

@@ -1,6 +1,5 @@
-using VerifyCS =
-    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
-        LinqContraband.Analyzers.LC002_PrematureMaterialization.PrematureMaterializationAnalyzer>;
+using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+    LinqContraband.Analyzers.LC002_PrematureMaterialization.PrematureMaterializationAnalyzer>;
 
 namespace LinqContraband.Tests.Analyzers.LC002_PrematureMaterialization;
 
