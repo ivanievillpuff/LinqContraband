@@ -400,12 +400,17 @@ EF Core queries are deferred, meaning they don't execute until you iterate them.
 **❌ The Crime:**
 
 ```csharp
-public IQueryable<User> GetUsers()
+public IQueryable<User> GetUsers(bool adultsOnly)
 {
     using var db = new AppDbContext();
-    // The context 'db' dies at the closing brace.
-    // The returned query is now a ticking time bomb.
-    return db.Users.Where(u => u.Age > 18);
+    
+    // The analyzer catches simple returns:
+    // return db.Users; 
+
+    // AND sneaky violations in conditional logic:
+    return adultsOnly 
+        ? db.Users.Where(u => u.Age >= 18) 
+        : db.Users;
 }
 ```
 
@@ -414,11 +419,16 @@ public IQueryable<User> GetUsers()
 Materialize the results (e.g., `.ToList()`) while the context is still alive.
 
 ```csharp
-public List<User> GetUsers()
+public List<User> GetUsers(bool adultsOnly)
 {
     using var db = new AppDbContext();
+
+    var query = adultsOnly 
+        ? db.Users.Where(u => u.Age >= 18) 
+        : db.Users;
+
     // Executes the query immediately. Safe to return.
-    return db.Users.Where(u => u.Age > 18).ToList();
+    return query.ToList();
 }
 ```
 

@@ -19,6 +19,10 @@ namespace LinqContraband.Sample.Samples.LC013_DisposedContextQuery
     /// This causes an <c>ObjectDisposedException</c> or other runtime failures.
     /// </para>
     /// <para>
+    /// <strong>Advanced Detection:</strong> This analyzer also detects these time bombs hiding inside 
+    /// conditional operators (<c>? :</c>), null-coalescing operators (<c>??</c>), and switch expressions.
+    /// </para>
+    /// <para>
     /// <strong>The Fix:</strong> Materialize the result (e.g., <c>ToList()</c>, <c>ToArray()</c>) while the context 
     /// is still alive, or ensure the context's lifetime is managed externally (e.g., via dependency injection).
     /// </para>
@@ -47,6 +51,16 @@ namespace LinqContraband.Sample.Samples.LC013_DisposedContextQuery
             return filterAdults 
                 ? db.Users.Where(u => u.Age >= 18) 
                 : db.Users;
+        }
+
+        /// <summary>
+        /// Demonstrates a violation hidden in a null-coalescing operator.
+        /// </summary>
+        public IQueryable<User> GetUsers_Coalesce_Violation(IQueryable<User> existingQuery)
+        {
+            using var db = new AppDbContext();
+            // VIOLATION: If existingQuery is null, we return a dead query.
+            return existingQuery ?? db.Users;
         }
 
         /// <summary>
