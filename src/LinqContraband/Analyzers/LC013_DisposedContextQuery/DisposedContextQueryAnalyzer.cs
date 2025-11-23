@@ -40,15 +40,50 @@ namespace LinqContraband.Analyzers.LC013_DisposedContextQuery
             // 1. Check if return type is deferred
             if (!IsDeferredType(returnedValue.Type)) return;
 
-            // 2. Find the root source of the query
-            var root = GetRootOperation(returnedValue);
+            // 2. Recursively check the expression for disposed context usage
+            CheckExpression(returnedValue, context);
+        }
 
-            // 3. Check if root is a local variable declared with 'using'
+        private void CheckExpression(IOperation? operation, OperationAnalysisContext context)
+        {
+            if (operation == null) return;
+
+            // Handle branching and unwrapping
+            if (operation is IConditionalOperation conditional)
+            {
+                CheckExpression(conditional.WhenTrue, context);
+                CheckExpression(conditional.WhenFalse, context);
+                return;
+            }
+            if (operation is ICoalesceOperation coalesce)
+            {
+                CheckExpression(coalesce.Value, context);
+                CheckExpression(coalesce.WhenNull, context);
+                return;
+            }
+            if (operation is ISwitchExpressionOperation switchExpr)
+            {
+                foreach(var arm in switchExpr.Arms)
+                {
+                    CheckExpression(arm.Value, context);
+                }
+                return;
+            }
+            if (operation is IConversionOperation conversion)
+            {
+                CheckExpression(conversion.Operand, context);
+                return;
+            }
+
+            // 3. Find the root source of this specific expression chain
+            var root = GetRootOperation(operation);
+
+            // 4. Check if root is a local variable declared with 'using'
             if (root is ILocalReferenceOperation localRef)
             {
                 if (IsDisposedLocal(localRef.Local))
                 {
-                     context.ReportDiagnostic(Diagnostic.Create(Rule, returnedValue.Syntax.GetLocation(), localRef.Local.Name));
+                     context.ReportDiagnostic(Diagnostic.Create(Rule, operation.Syntax.GetLocation(), localRef.Local.Name));
                 }
             }
         }

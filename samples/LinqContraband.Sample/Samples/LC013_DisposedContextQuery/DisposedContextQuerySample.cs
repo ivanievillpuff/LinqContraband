@@ -38,6 +38,18 @@ namespace LinqContraband.Sample.Samples.LC013_DisposedContextQuery
         }
 
         /// <summary>
+        /// Demonstrates a violation inside a conditional expression.
+        /// </summary>
+        public IQueryable<User> GetUsers_Branching_Violation(bool filterAdults)
+        {
+            using var db = new AppDbContext();
+            // VIOLATION: Both branches return a query from the disposed context.
+            return filterAdults 
+                ? db.Users.Where(u => u.Age >= 18) 
+                : db.Users;
+        }
+
+        /// <summary>
         /// Demonstrates the correct approach (Materialization).
         /// </summary>
         /// <returns>A safe, in-memory list of users.</returns>
