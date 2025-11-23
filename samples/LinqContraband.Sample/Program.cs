@@ -18,6 +18,16 @@ namespace LinqContraband.Sample
     public class Order { public int Id { get; set; } }
     public class Role { public int Id { get; set; } }
 
+    public class AppDbContext : DbContext
+    {
+        public DbSet<User> Users { get; set; }
+        
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseInMemoryDatabase("SampleDb");
+        }
+    }
+
     class Program
     {
         static async Task Main(string[] args)
@@ -80,6 +90,16 @@ namespace LinqContraband.Sample
             // This method returns entities but doesn't use AsNoTracking() and doesn't save changes.
             Console.WriteLine("Testing LC009...");
             GetUsersReadOnly(users);
+
+            // LC010: SaveChanges in Loop
+            // This calls SaveChanges() inside a loop, causing N+1 database transactions.
+            Console.WriteLine("Testing LC010...");
+            using var db = new AppDbContext();
+            foreach (var user in users)
+            {
+                user.Name += " Updated";
+                db.SaveChanges(); // Should trigger LC010
+            }
         }
 
         // Local method for LC001

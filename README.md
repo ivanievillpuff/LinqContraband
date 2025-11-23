@@ -242,6 +242,36 @@ public List<User> GetUsers()
 }
 ```
 
+---
+
+### LC010: SaveChanges Loop Tax
+
+Detects `SaveChanges` or `SaveChangesAsync` calls inside loops. This causes severe performance degradation by executing a separate database transaction for every iteration (N+1 Writes).
+
+**❌ The Crime:**
+
+```csharp
+foreach (var user in users)
+{
+    user.LastLogin = DateTime.Now;
+    // Opens a transaction and commits for EVERY user.
+    db.SaveChanges();
+}
+```
+
+**✅ The Fix:**
+
+Batch the changes and save once.
+
+```csharp
+foreach (var user in users)
+{
+    user.LastLogin = DateTime.Now;
+}
+// One transaction, one roundtrip.
+db.SaveChanges();
+```
+
 ## ⚙️ Configuration
 
 You can configure the severity of these rules in your `.editorconfig` file:
