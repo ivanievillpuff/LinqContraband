@@ -30,5 +30,20 @@ namespace Microsoft.EntityFrameworkCore
         {
             return source;
         }
+
+        // Async Mocks for LC008
+        public static Task<List<TSource>> ToListAsync<TSource>(
+            this IQueryable<TSource> source,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(source.ToList());
+        }
+
+        public static Task<int> CountAsync<TSource>(
+            this IQueryable<TSource> source,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(source.Count());
+        }
     }
 }

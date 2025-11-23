@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks; // Needed for async
 using Microsoft.EntityFrameworkCore; // Use our Mock
 
 namespace LinqContraband.Sample
@@ -19,7 +20,7 @@ namespace LinqContraband.Sample
 
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             var users = new List<User>
             {
@@ -68,6 +69,12 @@ namespace LinqContraband.Sample
             {
                 var user = users.Where(u => u.Id == id).ToList();
             }
+
+            // LC008: Sync Blocker
+            // This calls synchronous ToList inside an async method.
+            Console.WriteLine("Testing LC008...");
+            var syncBlocker = users.ToList(); // Should trigger LC008 because Main is async
+            await Task.Delay(10); // Ensure async method
         }
 
         // Local method for LC001

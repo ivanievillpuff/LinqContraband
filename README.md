@@ -182,6 +182,33 @@ Fetch data in bulk outside the loop.
 var users = db.Users.Where(u => ids.Contains(u.Id)).ToList();
 ```
 
+---
+
+### LC008: Sync-over-Async
+
+Detects synchronous EF Core materialization methods (like `ToList`, `Count`, `SaveChanges`) used inside an `async` method. This causes thread pool starvation and reduces server throughput.
+
+**❌ The Crime:**
+
+```csharp
+public async Task<List<User>> GetUsersAsync()
+{
+    // Blocks the thread while waiting for DB.
+    return db.Users.ToList();
+}
+```
+
+**✅ The Fix:**
+Use the Async counterpart and await it.
+
+```csharp
+public async Task<List<User>> GetUsersAsync()
+{
+    // Frees up the thread while waiting.
+    return await db.Users.ToListAsync();
+}
+```
+
 ## ⚙️ Configuration
 
 You can configure the severity of these rules in your `.editorconfig` file:
