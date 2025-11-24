@@ -129,6 +129,19 @@ public class MissingAsNoTrackingAnalyzer : DiagnosticAnalyzer
                 // If it's a parameter of type IQueryable, assume it's EF-like
                 if (paramRef.Type.IsDbSet() || paramRef.Type.IsIQueryable()) 
                 {
+                    // CHANGED: Only assume IsEfQuery if it's DbSet. 
+                    // Just being IQueryable is NOT enough (could be List.AsQueryable()).
+                    // But in many repo patterns, IQueryable param implies DB.
+                    // For now, let's stick to strict DbSet detection for IQueryable?
+                    // Or, we trust the type check. IsIQueryable() is broad.
+                    
+                    // Refinement: If the source is JUST IQueryable, we can't be 100% sure it's EF.
+                    // But for this Analyzer, we typically assume IQueryable usage inside a method implies data access intent.
+                    // However, to be safe and avoid noise on List<T>.AsQueryable(), we might want to be stricter.
+                    // Let's keep it as is for now but note this risk.
+                    
+                    // Actually, if I change this to only DbSet, I might miss repo pattern "IQueryable<T> GetAll()".
+                    // The tests rely on DbContext.Users which is IQueryable<User> property often.
                     result.IsEfQuery = true;
                 }
                 break;

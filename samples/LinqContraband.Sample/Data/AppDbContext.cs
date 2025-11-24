@@ -45,7 +45,7 @@ namespace LinqContraband.Sample.Data
         /// <summary>
         /// VALID: Primary Key defined in IEntityTypeConfiguration.
         /// </summary>
-        public DbSet<ValidConfigurationEntity> ValidConfigurations { get; set; } = null!;
+        public DbSet<ConfigurationEntity> ConfigurationEntities { get; set; } = null!;
 
         #endregion
 
@@ -60,7 +60,7 @@ namespace LinqContraband.Sample.Data
             modelBuilder.Entity<ValidFluentEntity>().HasKey(e => e.CodeKey);
 
             // Apply separate configuration
-            modelBuilder.ApplyConfiguration(new ValidConfigurationEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new ConfigurationEntityConfiguration());
         }
     }
 
