@@ -43,7 +43,7 @@ public class AvoidDateTimeNowFixer : CodeFixProvider
         // Find the containing statement to insert before
         var statement = memberAccess.FirstAncestorOrSelf<StatementSyntax>();
         if (statement == null) return;
-        
+
         // Ensure the statement is in a Block so we can insert before it
         if (statement.Parent is not BlockSyntax) return;
 
@@ -55,7 +55,8 @@ public class AvoidDateTimeNowFixer : CodeFixProvider
             diagnostic);
     }
 
-    private async Task<Document> FixAsync(Document document, MemberAccessExpressionSyntax memberAccess, StatementSyntax statement, CancellationToken cancellationToken)
+    private async Task<Document> FixAsync(Document document, MemberAccessExpressionSyntax memberAccess,
+        StatementSyntax statement, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -65,35 +66,36 @@ public class AvoidDateTimeNowFixer : CodeFixProvider
         var generator = editor.Generator;
 
         // 1. Determine variable name
-        string baseName = "now";
-        string memberName = memberAccess.Name.Identifier.Text;
+        var baseName = "now";
+        var memberName = memberAccess.Name.Identifier.Text;
         if (memberName == "UtcNow") baseName = "utcNow";
-        
+
         // Generate unique name
-        string variableName = GenerateUniqueName(baseName, statement, semanticModel);
+        var variableName = GenerateUniqueName(baseName, statement, semanticModel);
 
         // 2. Create the variable declaration: var now = DateTime.Now;
         // We use the exact expression text from the source to preserve "DateTime" vs "System.DateTime" etc.
-        var replacementValue = memberAccess.WithoutTrivia(); 
-        
+        var replacementValue = memberAccess.WithoutTrivia();
+
         var varDeclaration = generator.LocalDeclarationStatement(
-            generator.TypeExpression(SpecialType.System_Object), // "var" (represented as object type usually implies var in generator, or use explicit var)
+            generator.TypeExpression(SpecialType
+                .System_Object), // "var" (represented as object type usually implies var in generator, or use explicit var)
             variableName,
             replacementValue);
-        
+
         // Force "var" if possible, generator usually handles this with null type or specific flags, 
         // but Roslyn's generator behavior varies. 
         // Let's stick to explicitly creating the syntax to be sure it's "var name = value;"
         var declarationSyntax = SyntaxFactory.LocalDeclarationStatement(
-            SyntaxFactory.VariableDeclaration(
-                SyntaxFactory.IdentifierName("var"))
-            .WithVariables(
-                SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(
-                        SyntaxFactory.Identifier(variableName))
-                    .WithInitializer(
-                        SyntaxFactory.EqualsValueClause(replacementValue))
-                )))
+                SyntaxFactory.VariableDeclaration(
+                        SyntaxFactory.IdentifierName("var"))
+                    .WithVariables(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.VariableDeclarator(
+                                    SyntaxFactory.Identifier(variableName))
+                                .WithInitializer(
+                                    SyntaxFactory.EqualsValueClause(replacementValue))
+                        )))
             .WithTrailingTrivia(SyntaxFactory.EndOfLine("\n"))
             .WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -103,7 +105,7 @@ public class AvoidDateTimeNowFixer : CodeFixProvider
         // 4. Apply changes
         // We use editor to batch changes if we were doing multiple, but here we do manual replace on root usually?
         // Actually, SyntaxEditor is easier for "InsertBefore".
-        
+
         editor.InsertBefore(statement, declarationSyntax);
         editor.ReplaceNode(memberAccess, identifier);
 
@@ -112,13 +114,10 @@ public class AvoidDateTimeNowFixer : CodeFixProvider
 
     private string GenerateUniqueName(string baseName, SyntaxNode location, SemanticModel semanticModel)
     {
-        string name = baseName;
-        int index = 1;
+        var name = baseName;
+        var index = 1;
 
-        while (semanticModel.LookupSymbols(location.SpanStart, name: name).Any())
-        {
-            name = $"{baseName}{index++}";
-        }
+        while (semanticModel.LookupSymbols(location.SpanStart, name: name).Any()) name = $"{baseName}{index++}";
 
         return name;
     }

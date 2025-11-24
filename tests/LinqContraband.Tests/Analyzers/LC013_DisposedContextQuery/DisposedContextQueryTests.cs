@@ -1,10 +1,12 @@
-using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<LinqContraband.Analyzers.LC013_DisposedContextQuery.DisposedContextQueryAnalyzer>;
+using VerifyCS =
+    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+        LinqContraband.Analyzers.LC013_DisposedContextQuery.DisposedContextQueryAnalyzer>;
 
-namespace LinqContraband.Tests.Analyzers.LC013_DisposedContextQuery
+namespace LinqContraband.Tests.Analyzers.LC013_DisposedContextQuery;
+
+public class DisposedContextQueryTests
 {
-    public class DisposedContextQueryTests
-    {
-        private const string Usings = @"
+    private const string Usings = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +14,7 @@ using System.Threading.Tasks;
 using TestNamespace;
 ";
 
-        private const string MockNamespace = @"
+    private const string MockNamespace = @"
 namespace TestNamespace
 {
     public class User { public int Id { get; set; } }
@@ -35,10 +37,10 @@ namespace TestNamespace
 }
 ";
 
-        [Fact]
-        public async Task DisposedContext_ReturnDbSet_ShouldTrigger()
-        {
-            var test = Usings + @"
+    [Fact]
+    public async Task DisposedContext_ReturnDbSet_ShouldTrigger()
+    {
+        var test = Usings + @"
 class Program
 {
     public IQueryable<User> GetUsers()
@@ -47,13 +49,13 @@ class Program
         return {|LC013:db.Set<User>()|};
     }
 }" + MockNamespace;
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 
-        [Fact]
-        public async Task DisposedContext_ReturnQuery_ShouldTrigger()
-        {
-             var test = Usings + @"
+    [Fact]
+    public async Task DisposedContext_ReturnQuery_ShouldTrigger()
+    {
+        var test = Usings + @"
 class Program
 {
     public IQueryable<User> GetUsers()
@@ -62,13 +64,13 @@ class Program
         return {|LC013:db.Set<User>().Where(u => u.Id > 1)|};
     }
 }" + MockNamespace;
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 
-        [Fact]
-        public async Task DisposedContext_UsingStatement_ShouldTrigger()
-        {
-            var test = Usings + @"
+    [Fact]
+    public async Task DisposedContext_UsingStatement_ShouldTrigger()
+    {
+        var test = Usings + @"
 class Program
 {
     public IQueryable<User> GetUsers()
@@ -79,13 +81,13 @@ class Program
         }
     }
 }" + MockNamespace;
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 
-        [Fact]
-        public async Task ExternalContext_ShouldNotTrigger()
-        {
-            var test = Usings + @"
+    [Fact]
+    public async Task ExternalContext_ShouldNotTrigger()
+    {
+        var test = Usings + @"
 class Program
 {
     public IQueryable<User> GetUsers(DbContext db)
@@ -93,13 +95,13 @@ class Program
         return db.Set<User>();
     }
 }" + MockNamespace;
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 
-        [Fact]
-        public async Task MaterializedResult_ShouldNotTrigger()
-        {
-            var test = Usings + @"
+    [Fact]
+    public async Task MaterializedResult_ShouldNotTrigger()
+    {
+        var test = Usings + @"
 class Program
 {
     public List<User> GetUsers()
@@ -108,7 +110,6 @@ class Program
         return db.Set<User>().ToList();
     }
 }" + MockNamespace;
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 }

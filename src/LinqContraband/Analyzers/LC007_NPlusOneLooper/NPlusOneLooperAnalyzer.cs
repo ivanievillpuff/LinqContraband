@@ -47,19 +47,14 @@ public class NPlusOneLooperAnalyzer : DiagnosticAnalyzer
 
         // 2. Check if inside a loop
         if (IsInsideLoop(invocation))
-        {
             context.ReportDiagnostic(
                 Diagnostic.Create(Rule, invocation.Syntax.GetLocation(), method.Name));
-        }
     }
 
     private bool IsDbExecutionMethod(IMethodSymbol method, IInvocationOperation invocation)
     {
         // Case 1: DbSet.Find / FindAsync
-        if (method.Name.StartsWith("Find") && IsDbSet(method.ContainingType))
-        {
-            return true;
-        }
+        if (method.Name.StartsWith("Find") && IsDbSet(method.ContainingType)) return true;
 
         // Case 2: IQueryable materializers (ToList, Count, First, etc.)
         if (!IsMaterializer(method.Name)) return false;
@@ -90,11 +85,12 @@ public class NPlusOneLooperAnalyzer : DiagnosticAnalyzer
         var current = type;
         while (current != null)
         {
-            if (current.Name == "DbSet" && 
+            if (current.Name == "DbSet" &&
                 current.ContainingNamespace?.ToString() == "Microsoft.EntityFrameworkCore")
                 return true;
             current = current.BaseType;
         }
+
         return false;
     }
 

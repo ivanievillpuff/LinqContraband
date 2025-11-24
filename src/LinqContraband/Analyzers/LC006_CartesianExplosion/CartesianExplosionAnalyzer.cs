@@ -60,9 +60,9 @@ public class CartesianExplosionAnalyzer : DiagnosticAnalyzer
 
         // Now check the chain backwards. Handle extension method syntax.
         var current = invocation.Instance ?? (invocation.Arguments.Length > 0 ? invocation.Arguments[0].Value : null);
-        
-        bool foundSplitQuery = false;
-        int previousCollectionIncludes = 0;
+
+        var foundSplitQuery = false;
+        var previousCollectionIncludes = 0;
 
         while (current != null)
         {
@@ -73,31 +73,27 @@ public class CartesianExplosionAnalyzer : DiagnosticAnalyzer
             {
                 var prevMethod = prevInvocation.TargetMethod;
 
-                if (prevMethod.Name == "AsSplitQuery" && 
+                if (prevMethod.Name == "AsSplitQuery" &&
                     prevMethod.ContainingNamespace?.ToString() == "Microsoft.EntityFrameworkCore")
                 {
                     foundSplitQuery = true;
                     break;
                 }
 
-                if (prevMethod.Name == "Include" && 
+                if (prevMethod.Name == "Include" &&
                     prevMethod.ContainingNamespace?.ToString() == "Microsoft.EntityFrameworkCore")
                 {
                     // Check if this previous include was ALSO a collection
                     ITypeSymbol? prevPropType = null;
                     if (prevMethod.TypeArguments.Length >= 2)
-                    {
                         prevPropType = prevMethod.TypeArguments[prevMethod.TypeArguments.Length - 1];
-                    }
 
-                    if (prevPropType == null || IsCollection(prevPropType))
-                    {
-                        previousCollectionIncludes++;
-                    }
+                    if (prevPropType == null || IsCollection(prevPropType)) previousCollectionIncludes++;
                 }
 
                 // Move up the chain
-                current = prevInvocation.Instance ?? (prevInvocation.Arguments.Length > 0 ? prevInvocation.Arguments[0].Value : null);
+                current = prevInvocation.Instance ??
+                          (prevInvocation.Arguments.Length > 0 ? prevInvocation.Arguments[0].Value : null);
             }
             else
             {
@@ -132,13 +128,11 @@ public class CartesianExplosionAnalyzer : DiagnosticAnalyzer
             if (namedType.Name == "HashSet" && namedType.IsGenericType) return true;
             if (namedType.Name == "ISet" && namedType.IsGenericType) return true;
         }
-        
+
         foreach (var iface in type.AllInterfaces)
-        {
-            if (iface.Name == "IEnumerable" && iface.IsGenericType && 
+            if (iface.Name == "IEnumerable" && iface.IsGenericType &&
                 iface.ContainingNamespace?.ToString() == "System.Collections.Generic")
                 return true;
-        }
 
         return false;
     }

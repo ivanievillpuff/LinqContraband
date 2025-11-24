@@ -14,37 +14,39 @@ using LinqContraband.Sample.Samples.LC012_OptimizeRemoveRange;
 using LinqContraband.Sample.Samples.LC014_AvoidStringCaseConversion;
 using LinqContraband.Sample.Samples.LC015_MissingOrderBy;
 
-namespace LinqContraband.Sample
+namespace LinqContraband.Sample;
+
+internal class Program
 {
-    class Program
+    private static async Task Main(string[] args)
     {
-        static async Task Main(string[] args)
+        var users = new List<User>
         {
-            var users = new List<User>
+            new()
             {
-                new User { Id = Guid.NewGuid(), Name = "Alice", Age = 30, Orders = new(), Roles = new() },
-                new User { Id = Guid.NewGuid(), Name = "Bob", Age = 25, Orders = new(), Roles = new() }
-            }.AsQueryable();
+                Id = Guid.NewGuid(), Name = "Alice", Age = 30, Orders = new List<Order>(), Roles = new List<Role>()
+            },
+            new() { Id = Guid.NewGuid(), Name = "Bob", Age = 25, Orders = new List<Order>(), Roles = new List<Role>() }
+        }.AsQueryable();
 
-            LocalMethodSample.Run(users);
-            PrematureMaterializationSample.Run(users);
-            AnyOverCountSample.Run(users);
-            IQueryableLeakSample.Run();
-            MultipleOrderBySample.Run(users);
-            CartesianExplosionSample.Run(users);
-            NPlusOneLooperSample.Run(users);
-            await SyncBlockerSample.RunAsync(users);
-            MissingAsNoTrackingSample.Run(users);
-            SaveChangesInLoopSample.Run(users);
-            EntityMissingPrimaryKeySample.Run();
-            OptimizeRemoveRangeSample.Run();
+        LocalMethodSample.Run(users);
+        PrematureMaterializationSample.Run(users);
+        AnyOverCountSample.Run(users);
+        IQueryableLeakSample.Run();
+        MultipleOrderBySample.Run(users);
+        CartesianExplosionSample.Run(users);
+        NPlusOneLooperSample.Run(users);
+        await SyncBlockerSample.RunAsync(users);
+        MissingAsNoTrackingSample.Run(users);
+        SaveChangesInLoopSample.Run(users);
+        EntityMissingPrimaryKeySample.Run();
+        OptimizeRemoveRangeSample.Run();
 
-            // LC014: AvoidStringCaseConversion
-            using var db = new AppDbContext();
-            AvoidStringCaseConversionSample.Run(db);
-            
-            // LC015: MissingOrderBy
-            MissingOrderBySample.Run(users);
-        }
+        // LC014: AvoidStringCaseConversion
+        using var db = new AppDbContext();
+        AvoidStringCaseConversionSample.Run(db);
+
+        // LC015: MissingOrderBy
+        MissingOrderBySample.Run(users);
     }
 }

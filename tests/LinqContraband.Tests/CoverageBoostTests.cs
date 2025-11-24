@@ -1,7 +1,15 @@
-using VerifyCS_LC006 = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<LinqContraband.Analyzers.LC006_CartesianExplosion.CartesianExplosionAnalyzer>;
-using VerifyCS_LC007 = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<LinqContraband.Analyzers.LC007_NPlusOneLooper.NPlusOneLooperAnalyzer>;
-using VerifyCS_LC008 = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<LinqContraband.Analyzers.LC008_SyncBlocker.SyncBlockerAnalyzer>;
-using VerifyCS_LC009 = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<LinqContraband.Analyzers.LC009_MissingAsNoTracking.MissingAsNoTrackingAnalyzer>;
+using VerifyCS_LC006 =
+    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+        LinqContraband.Analyzers.LC006_CartesianExplosion.CartesianExplosionAnalyzer>;
+using VerifyCS_LC007 =
+    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+        LinqContraband.Analyzers.LC007_NPlusOneLooper.NPlusOneLooperAnalyzer>;
+using VerifyCS_LC008 =
+    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+        LinqContraband.Analyzers.LC008_SyncBlocker.SyncBlockerAnalyzer>;
+using VerifyCS_LC009 =
+    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+        LinqContraband.Analyzers.LC009_MissingAsNoTracking.MissingAsNoTrackingAnalyzer>;
 
 namespace LinqContraband.Tests;
 
@@ -79,7 +87,7 @@ class Program {
         var expected = VerifyCS_LC006.Diagnostic("LC006")
             .WithSpan(59, 21, 59, 77)
             .WithArguments("string[]"); // Int32[] or string[]? The second one is string[]. "Tags".
-            
+
         await VerifyCS_LC006.VerifyAnalyzerAsync(test, expected);
     }
 

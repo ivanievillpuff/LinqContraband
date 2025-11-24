@@ -84,9 +84,7 @@ public class LocalMethodFixer : CodeFixProvider
     {
         if (expression is InvocationExpressionSyntax invocation &&
             invocation.Expression is MemberAccessExpressionSyntax ma)
-        {
             return ma.Name.Identifier.Text == methodName;
-        }
 
         return false;
     }

@@ -52,10 +52,8 @@ public class SaveChangesInLoopAnalyzer : DiagnosticAnalyzer
 
         // 3. Check if inside a loop
         if (IsInsideLoop(invocation))
-        {
             context.ReportDiagnostic(
                 Diagnostic.Create(Rule, invocation.Syntax.GetLocation(), method.Name));
-        }
     }
 
     private bool IsDbContext(ITypeSymbol type)
@@ -68,6 +66,7 @@ public class SaveChangesInLoopAnalyzer : DiagnosticAnalyzer
                 return true;
             current = current.BaseType;
         }
+
         return false;
     }
 

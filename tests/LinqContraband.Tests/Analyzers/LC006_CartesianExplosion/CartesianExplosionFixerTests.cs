@@ -1,10 +1,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
-using CodeFixTest =
-    Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<
-        LinqContraband.Analyzers.LC006_CartesianExplosion.CartesianExplosionAnalyzer,
-        LinqContraband.Analyzers.LC006_CartesianExplosion.CartesianExplosionFixer,
-        Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<
+    LinqContraband.Analyzers.LC006_CartesianExplosion.CartesianExplosionAnalyzer,
+    LinqContraband.Analyzers.LC006_CartesianExplosion.CartesianExplosionFixer,
+    Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
 using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
     LinqContraband.Analyzers.LC006_CartesianExplosion.CartesianExplosionAnalyzer>;
 
@@ -104,7 +103,7 @@ class Program
         var testObj = new CodeFixTest
         {
             TestCode = test,
-            FixedCode = fixedCode,
+            FixedCode = fixedCode
         };
 
         // The diagnostic is on the second Include. Line 14 in this file structure.

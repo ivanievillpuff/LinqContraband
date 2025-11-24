@@ -1,7 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Linq;
 
 namespace LinqContraband.Analyzers.LC011_EntityMissingPrimaryKey;
 
@@ -45,24 +47,23 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
 
         // Find all DbSet<T> properties
         foreach (var member in namedType.GetMembers())
-        {
-            if (member is IPropertySymbol property && 
-                property.Type is INamedTypeSymbol propType && 
+            if (member is IPropertySymbol property &&
+                property.Type is INamedTypeSymbol propType &&
                 IsDbSet(propType))
             {
-                var entityType = propType.TypeArguments.Length > 0 ? propType.TypeArguments[0] as INamedTypeSymbol : null;
+                var entityType = propType.TypeArguments.Length > 0
+                    ? propType.TypeArguments[0] as INamedTypeSymbol
+                    : null;
                 if (entityType == null) continue;
 
                 if (IsMissingPrimaryKey(entityType, namedType, context.Compilation))
-                {
                     context.ReportDiagnostic(
                         Diagnostic.Create(Rule, property.Locations[0], entityType.Name));
-                }
             }
-        }
     }
 
-    private bool IsMissingPrimaryKey(INamedTypeSymbol entityType, INamedTypeSymbol dbContextType, Compilation compilation)
+    private bool IsMissingPrimaryKey(INamedTypeSymbol entityType, INamedTypeSymbol dbContextType,
+        Compilation compilation)
     {
         // Heuristic 1: Attributes (Class Level)
         if (HasAttribute(entityType, "KeylessAttribute") || HasAttribute(entityType, "Keyless")) return false;
@@ -86,8 +87,10 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
         {
             if (attr.AttributeClass == null) continue;
             if (attr.AttributeClass.Name == attributeName) return true;
-            if (attributeName.EndsWith("Attribute") && attr.AttributeClass.Name == attributeName.Substring(0, attributeName.Length - 9)) return true;
+            if (attributeName.EndsWith("Attribute") &&
+                attr.AttributeClass.Name == attributeName.Substring(0, attributeName.Length - 9)) return true;
         }
+
         return false;
     }
 
@@ -97,21 +100,21 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
         while (current != null && current.SpecialType != SpecialType.System_Object)
         {
             foreach (var member in current.GetMembers())
-            {
                 if (member is IPropertySymbol prop)
                 {
                     // [Key] Attribute
                     if (HasAttribute(prop, "KeyAttribute") || HasAttribute(prop, "Key")) return true;
 
                     // Convention: Id
-                    if (prop.Name.Equals("Id", System.StringComparison.OrdinalIgnoreCase)) return true;
+                    if (prop.Name.Equals("Id", StringComparison.OrdinalIgnoreCase)) return true;
 
                     // Convention: {EntityName}Id
-                    if (prop.Name.Equals($"{entityType.Name}Id", System.StringComparison.OrdinalIgnoreCase)) return true;
+                    if (prop.Name.Equals($"{entityType.Name}Id", StringComparison.OrdinalIgnoreCase)) return true;
                 }
-            }
+
             current = current.BaseType;
         }
+
         return false;
     }
 
@@ -120,7 +123,7 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
         // Scan OnModelCreating method for .Entity<T>().HasKey(...)
         var methods = dbContextType.GetMembers("OnModelCreating");
         if (methods.IsEmpty) return false;
-        
+
         var onModelCreating = methods[0] as IMethodSymbol;
         if (onModelCreating == null) return false;
 
@@ -137,7 +140,8 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
     private bool HasEntityTypeConfigurationKey(Compilation compilation, INamedTypeSymbol entityType)
     {
         // Find IEntityTypeConfiguration<T> symbol
-        var interfaceSymbol = compilation.GetTypeByMetadataName("Microsoft.EntityFrameworkCore.IEntityTypeConfiguration`1");
+        var interfaceSymbol =
+            compilation.GetTypeByMetadataName("Microsoft.EntityFrameworkCore.IEntityTypeConfiguration`1");
         if (interfaceSymbol == null) return false;
 
         var genericInterface = interfaceSymbol.Construct(entityType);
@@ -148,24 +152,19 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
         // For now, we do a broad search but limit depth or use a visitor if possible. 
         // Roslyn doesn't have a quick "FindImplementations" without a workspace.
         // We have to iterate symbols.
-        
+
         // Visitor approach to find types
         var visitor = new TypeCollector();
         visitor.Visit(compilation.GlobalNamespace);
-        
+
         foreach (var type in visitor.Types)
-        {
-             foreach (var iface in type.AllInterfaces)
-             {
-                 if (SymbolEqualityComparer.Default.Equals(iface, genericInterface))
-                 {
-                     // Found a configuration class for this entity.
-                     // Now check its Configure method for HasKey.
-                     if (HasConfigureMethodKey(type)) return true;
-                 }
-             }
-        }
-        
+        foreach (var iface in type.AllInterfaces)
+            if (SymbolEqualityComparer.Default.Equals(iface, genericInterface))
+                // Found a configuration class for this entity.
+                // Now check its Configure method for HasKey.
+                if (HasConfigureMethodKey(type))
+                    return true;
+
         return false;
     }
 
@@ -181,29 +180,8 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
             // Check for .HasKey(...) inside Configure method
             if (text.Contains("HasKey")) return true;
         }
+
         return false;
-    }
-
-    private class TypeCollector : SymbolVisitor
-    {
-        public System.Collections.Generic.List<INamedTypeSymbol> Types { get; } = new();
-
-        public override void VisitNamespace(INamespaceSymbol symbol)
-        {
-            foreach (var member in symbol.GetMembers())
-            {
-                member.Accept(this);
-            }
-        }
-
-        public override void VisitNamedType(INamedTypeSymbol symbol)
-        {
-            Types.Add(symbol);
-            foreach (var member in symbol.GetTypeMembers())
-            {
-                member.Accept(this);
-            }
-        }
     }
 
     private bool IsDbContext(INamedTypeSymbol type)
@@ -211,29 +189,47 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
         var current = type;
         while (current != null)
         {
-            if (current.Name == "DbContext" && 
+            if (current.Name == "DbContext" &&
                 current.ContainingNamespace?.ToString() == "Microsoft.EntityFrameworkCore")
                 return true;
             current = current.BaseType;
         }
+
         return false;
     }
 
     private bool IsDbSet(INamedTypeSymbol type)
     {
-        if (type.Name == "DbSet" && 
+        if (type.Name == "DbSet" &&
             type.ContainingNamespace?.ToString() == "Microsoft.EntityFrameworkCore")
             return true;
-        
+
         // Check base types just in case
         var current = type.BaseType;
         while (current != null)
         {
-             if (current.Name == "DbSet" && 
+            if (current.Name == "DbSet" &&
                 current.ContainingNamespace?.ToString() == "Microsoft.EntityFrameworkCore")
                 return true;
-             current = current.BaseType;
+            current = current.BaseType;
         }
+
         return false;
+    }
+
+    private class TypeCollector : SymbolVisitor
+    {
+        public List<INamedTypeSymbol> Types { get; } = new();
+
+        public override void VisitNamespace(INamespaceSymbol symbol)
+        {
+            foreach (var member in symbol.GetMembers()) member.Accept(this);
+        }
+
+        public override void VisitNamedType(INamedTypeSymbol symbol)
+        {
+            Types.Add(symbol);
+            foreach (var member in symbol.GetTypeMembers()) member.Accept(this);
+        }
     }
 }

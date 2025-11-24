@@ -4,22 +4,24 @@ using LinqContraband.Sample.Data;
 namespace LinqContraband.Sample.Samples.LC014_AvoidStringCaseConversion;
 
 /// <summary>
-/// Demonstrates the "String Case Conversion" violation (LC014).
+///     Demonstrates the "String Case Conversion" violation (LC014).
 /// </summary>
 /// <remarks>
-/// <para>
-/// <strong>The Crime:</strong> Using <c>.ToLower()</c> or <c>.ToUpper()</c> on a database column inside a LINQ query predicate.
-/// </para>
-/// <para>
-/// <strong>Why it's bad:</strong> This is "Non-Sargable" (Search ARGument ABLE). It forces the database to transform
-/// <em>every single row's value</em> to lowercase before comparing it. Because the value is transformed,
-/// the database cannot use its B-Tree index on the column. This turns a fast <c>Index Seek</c> (O(log n))
-/// into a slow <c>Index Scan</c> or <c>Table Scan</c> (O(n)).
-/// </para>
-/// <para>
-/// <strong>The Fix:</strong> Use case-insensitive collation, <c>string.Equals</c> with <c>OrdinalIgnoreCase</c>,
-/// or <c>EF.Functions.Collate</c>.
-/// </para>
+///     <para>
+///         <strong>The Crime:</strong> Using <c>.ToLower()</c> or <c>.ToUpper()</c> on a database column inside a LINQ
+///         query predicate.
+///     </para>
+///     <para>
+///         <strong>Why it's bad:</strong> This is "Non-Sargable" (Search ARGument ABLE). It forces the database to
+///         transform
+///         <em>every single row's value</em> to lowercase before comparing it. Because the value is transformed,
+///         the database cannot use its B-Tree index on the column. This turns a fast <c>Index Seek</c> (O(log n))
+///         into a slow <c>Index Scan</c> or <c>Table Scan</c> (O(n)).
+///     </para>
+///     <para>
+///         <strong>The Fix:</strong> Use case-insensitive collation, <c>string.Equals</c> with <c>OrdinalIgnoreCase</c>,
+///         or <c>EF.Functions.Collate</c>.
+///     </para>
 /// </remarks>
 [SuppressMessage("Performance", "LC009:Performance: Missing AsNoTracking() in Read-Only path")]
 public static class AvoidStringCaseConversionSample

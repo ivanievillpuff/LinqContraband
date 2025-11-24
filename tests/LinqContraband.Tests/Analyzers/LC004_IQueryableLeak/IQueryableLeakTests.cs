@@ -1,17 +1,19 @@
-using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<LinqContraband.Analyzers.LC004_IQueryableLeak.IQueryableLeakAnalyzer>;
+using VerifyCS =
+    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+        LinqContraband.Analyzers.LC004_IQueryableLeak.IQueryableLeakAnalyzer>;
 
-namespace LinqContraband.Tests.Analyzers.LC004_IQueryableLeak
+namespace LinqContraband.Tests.Analyzers.LC004_IQueryableLeak;
+
+public class IQueryableLeakTests
 {
-    public class IQueryableLeakTests
-    {
-        private const string Usings = @"
+    private const string Usings = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using TestNamespace;
 ";
 
-        private const string MockNamespace = @"
+    private const string MockNamespace = @"
 namespace TestNamespace
 {
     public class User { public int Id { get; set; } }
@@ -39,10 +41,10 @@ namespace TestNamespace
 }
 ";
 
-        [Fact]
-        public async Task Leak_WhenPassingIQueryableToIEnumerableMethod_ShouldTrigger()
-        {
-            var test = Usings + @"
+    [Fact]
+    public async Task Leak_WhenPassingIQueryableToIEnumerableMethod_ShouldTrigger()
+    {
+        var test = Usings + @"
 namespace TestApp 
 {
     public class AppDbContext : DbContext { public DbSet<User> Users { get; set; } }
@@ -66,13 +68,13 @@ namespace TestApp
     }
 }" + MockNamespace;
 
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 
-        [Fact]
-        public async Task NoLeak_WhenPassingToList_ShouldNotTrigger()
-        {
-            var test = Usings + @"
+    [Fact]
+    public async Task NoLeak_WhenPassingToList_ShouldNotTrigger()
+    {
+        var test = Usings + @"
 namespace TestApp 
 {
     public class AppDbContext : DbContext { public DbSet<User> Users { get; set; } }
@@ -94,13 +96,13 @@ namespace TestApp
     }
 }" + MockNamespace;
 
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 
-        [Fact]
-        public async Task NoLeak_WhenPassingToIQueryableMethod_ShouldNotTrigger()
-        {
-            var test = Usings + @"
+    [Fact]
+    public async Task NoLeak_WhenPassingToIQueryableMethod_ShouldNotTrigger()
+    {
+        var test = Usings + @"
 namespace TestApp 
 {
     public class AppDbContext : DbContext { public DbSet<User> Users { get; set; } }
@@ -123,7 +125,6 @@ namespace TestApp
     }
 }" + MockNamespace;
 
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 }

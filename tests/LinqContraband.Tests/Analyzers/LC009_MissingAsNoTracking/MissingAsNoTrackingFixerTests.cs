@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
     LinqContraband.Analyzers.LC009_MissingAsNoTracking.MissingAsNoTrackingAnalyzer,
     LinqContraband.Analyzers.LC009_MissingAsNoTracking.MissingAsNoTrackingFixer>;
@@ -9,7 +7,7 @@ namespace LinqContraband.Tests.Analyzers.LC009_MissingAsNoTracking;
 public class MissingAsNoTrackingFixerTests
 {
     // Helper to add references if needed
-    
+
     [Fact]
     public async Task FixCrime_InjectsAsNoTracking()
     {

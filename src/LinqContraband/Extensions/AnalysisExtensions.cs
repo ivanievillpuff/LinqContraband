@@ -40,15 +40,16 @@ public static class AnalysisExtensions
                 current = conversion.Operand;
                 continue;
             }
-            
+
             if (current is IParenthesizedOperation parenthesized)
             {
                 current = parenthesized.Operand;
                 continue;
             }
-            
+
             break;
         }
+
         return current;
     }
 

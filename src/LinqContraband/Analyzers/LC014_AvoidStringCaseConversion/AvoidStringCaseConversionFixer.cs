@@ -36,35 +36,28 @@ public class AvoidStringCaseConversionFixer : CodeFixProvider
 
         // Check if we can fix this usage
         if (CanFix(node))
-        {
             context.RegisterCodeFix(
                 CodeAction.Create(
                     "Use string.Equals with StringComparison.OrdinalIgnoreCase",
                     c => FixAsync(context.Document, node, c),
                     nameof(AvoidStringCaseConversionFixer)),
                 diagnostic);
-        }
     }
 
     private bool CanFix(InvocationExpressionSyntax node)
     {
-        SyntaxNode? parent = node.Parent;
+        var parent = node.Parent;
 
         // Handle Conditional Access: u.Name?.ToLower()
         // Parent is ConditionalAccessExpression. We need to look at ITS parent.
-        if (parent is ConditionalAccessExpressionSyntax)
-        {
-            parent = parent.Parent;
-        }
+        if (parent is ConditionalAccessExpressionSyntax) parent = parent.Parent;
 
         if (parent == null) return false;
 
         // Case 1: Binary Expression (== or !=)
         if (parent is BinaryExpressionSyntax binary &&
             (binary.IsKind(SyntaxKind.EqualsExpression) || binary.IsKind(SyntaxKind.NotEqualsExpression)))
-        {
             return true;
-        }
 
         // Case 2: .Equals() method call
         // structure: Invocation(MemberAccess(Expression=Invocation(ToLower), Name=Equals))
@@ -72,14 +65,13 @@ public class AvoidStringCaseConversionFixer : CodeFixProvider
             memberAccess.Name.Identifier.Text == "Equals" &&
             memberAccess.Parent is InvocationExpressionSyntax equalsInvocation &&
             equalsInvocation.ArgumentList.Arguments.Count == 1)
-        {
             return true;
-        }
 
         return false;
     }
 
-    private async Task<Document> FixAsync(Document document, InvocationExpressionSyntax toLowerInvocation, CancellationToken cancellationToken)
+    private async Task<Document> FixAsync(Document document, InvocationExpressionSyntax toLowerInvocation,
+        CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -88,10 +80,11 @@ public class AvoidStringCaseConversionFixer : CodeFixProvider
         ExpressionSyntax? targetNode = null;
         ExpressionSyntax? left = null;
         ExpressionSyntax? right = null;
-        bool isNotEquals = false;
+        var isNotEquals = false;
 
-        SyntaxNode? currentParent = toLowerInvocation.Parent;
-        SyntaxNode? comparisonNode = toLowerInvocation; // The node participating in comparison (Binary or Equals target)
+        var currentParent = toLowerInvocation.Parent;
+        SyntaxNode?
+            comparisonNode = toLowerInvocation; // The node participating in comparison (Binary or Equals target)
 
         // 1. Extract 'left' (the string instance)
         if (currentParent is ConditionalAccessExpressionSyntax conditional)
@@ -121,10 +114,7 @@ public class AvoidStringCaseConversionFixer : CodeFixProvider
             var otherOperand = binary.Left == comparisonNode ? binary.Right : binary.Left;
             right = otherOperand;
 
-            if (binary.IsKind(SyntaxKind.NotEqualsExpression))
-            {
-                isNotEquals = true;
-            }
+            if (binary.IsKind(SyntaxKind.NotEqualsExpression)) isNotEquals = true;
         }
         else if (currentParent is MemberAccessExpressionSyntax memberAccess &&
                  memberAccess.Parent is InvocationExpressionSyntax equalsInvocation)
@@ -137,24 +127,21 @@ public class AvoidStringCaseConversionFixer : CodeFixProvider
 
         // Build: string.Equals(left, right, StringComparison.OrdinalIgnoreCase)
         var stringType = generator.TypeExpression(SpecialType.System_String);
-        
+
         // We want StringComparison.OrdinalIgnoreCase as a MemberAccessExpression, not QualifiedName.
         var stringComparisonType = generator.IdentifierName("StringComparison");
         var stringComparison = generator.MemberAccessExpression(stringComparisonType, "OrdinalIgnoreCase");
-        
+
         var replacement = generator.InvocationExpression(
             generator.MemberAccessExpression(stringType, "Equals"),
             left,
             right,
             stringComparison);
 
-        if (isNotEquals)
-        {
-            replacement = generator.LogicalNotExpression(replacement);
-        }
+        if (isNotEquals) replacement = generator.LogicalNotExpression(replacement);
 
         var newRoot = root.ReplaceNode(targetNode, replacement);
-        
+
         // Add "using System;" if missing (for StringComparison)
         // SyntaxGenerator handles namespaces gracefully? Not always "using" directives.
         // We'll manually check/add or let the user do it?
@@ -163,13 +150,13 @@ public class AvoidStringCaseConversionFixer : CodeFixProvider
         if (compilationUnit != null)
         {
             // Check if System is imported
-            bool hasSystem = compilationUnit.Usings.Any(u => u.Name?.ToString() == "System");
+            var hasSystem = compilationUnit.Usings.Any(u => u.Name?.ToString() == "System");
             if (!hasSystem)
             {
-                 var systemUsing = SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System"))
-                     .WithTrailingTrivia(SyntaxFactory.EndOfLine("\n"));
-                 // Add to top
-                 newRoot = compilationUnit.AddUsings(systemUsing);
+                var systemUsing = SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System"))
+                    .WithTrailingTrivia(SyntaxFactory.EndOfLine("\n"));
+                // Add to top
+                newRoot = compilationUnit.AddUsings(systemUsing);
             }
         }
 

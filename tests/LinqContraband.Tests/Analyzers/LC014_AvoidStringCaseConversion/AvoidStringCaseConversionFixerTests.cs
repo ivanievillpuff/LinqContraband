@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
     LinqContraband.Analyzers.LC014_AvoidStringCaseConversion.AvoidStringCaseConversionAnalyzer,
     LinqContraband.Analyzers.LC014_AvoidStringCaseConversion.AvoidStringCaseConversionFixer>;
@@ -109,7 +107,7 @@ class Test
 }";
         await VerifyCS.VerifyCodeFixAsync(test, fix);
     }
-    
+
     [Fact]
     public async Task FixToLowerEqualsMethod()
     {

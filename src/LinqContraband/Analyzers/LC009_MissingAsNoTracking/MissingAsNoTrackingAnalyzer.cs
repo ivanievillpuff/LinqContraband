@@ -56,7 +56,7 @@ public class MissingAsNoTrackingAnalyzer : DiagnosticAnalyzer
 
         // If we got here: It's an EF query returning entities, no tracking mod, no writes in method.
         var containingMethodName = GetContainingMethodName(context.Operation);
-        
+
         context.ReportDiagnostic(
             Diagnostic.Create(Rule, invocation.Syntax.GetLocation(), containingMethodName));
     }
@@ -76,18 +76,10 @@ public class MissingAsNoTrackingAnalyzer : DiagnosticAnalyzer
                method.Name == "LastAsync" || method.Name == "LastOrDefaultAsync";
     }
 
-    private class ChainAnalysis
-    {
-        public bool IsEfQuery { get; set; }
-        public bool HasAsNoTracking { get; set; }
-        public bool HasAsTracking { get; set; }
-        public bool HasSelect { get; set; }
-    }
-
     private ChainAnalysis AnalyzeQueryChain(IInvocationOperation invocation)
     {
         var result = new ChainAnalysis();
-        var current = invocation.Instance ?? 
+        var current = invocation.Instance ??
                       (invocation.Arguments.Length > 0 ? invocation.Arguments[0].Value : null);
 
         while (current != null)
@@ -103,47 +95,41 @@ public class MissingAsNoTrackingAnalyzer : DiagnosticAnalyzer
                 if (method.Name == "AsNoTracking" || method.Name == "AsNoTrackingWithIdentityResolution")
                     result.HasAsNoTracking = true;
                 if (method.Name == "AsTracking") result.HasAsTracking = true;
-                if (method.Name == "Select") result.HasSelect = true; // Any projection invalidates need for AsNoTracking check
+                if (method.Name == "Select")
+                    result.HasSelect = true; // Any projection invalidates need for AsNoTracking check
 
                 // Move up
-                current = prevInvocation.Instance ?? 
+                current = prevInvocation.Instance ??
                           (prevInvocation.Arguments.Length > 0 ? prevInvocation.Arguments[0].Value : null);
             }
             else if (current is IPropertyReferenceOperation propRef)
             {
                 // Check if it's a DbSet
-                if (propRef.Type.IsDbSet())
-                {
-                    result.IsEfQuery = true;
-                }
+                if (propRef.Type.IsDbSet()) result.IsEfQuery = true;
                 // End of chain
                 break;
             }
             else if (current is IFieldReferenceOperation fieldRef)
             {
-                 if (fieldRef.Type.IsDbSet()) result.IsEfQuery = true;
-                 break;
+                if (fieldRef.Type.IsDbSet()) result.IsEfQuery = true;
+                break;
             }
             else if (current is IParameterReferenceOperation paramRef)
             {
                 // If it's a parameter of type IQueryable, assume it's EF-like
-                if (paramRef.Type.IsDbSet() || paramRef.Type.IsIQueryable()) 
-                {
+                if (paramRef.Type.IsDbSet() || paramRef.Type.IsIQueryable())
                     // CHANGED: Only assume IsEfQuery if it's DbSet. 
                     // Just being IQueryable is NOT enough (could be List.AsQueryable()).
                     // But in many repo patterns, IQueryable param implies DB.
                     // For now, let's stick to strict DbSet detection for IQueryable?
                     // Or, we trust the type check. IsIQueryable() is broad.
-                    
                     // Refinement: If the source is JUST IQueryable, we can't be 100% sure it's EF.
                     // But for this Analyzer, we typically assume IQueryable usage inside a method implies data access intent.
                     // However, to be safe and avoid noise on List<T>.AsQueryable(), we might want to be stricter.
                     // Let's keep it as is for now but note this risk.
-                    
                     // Actually, if I change this to only DbSet, I might miss repo pattern "IQueryable<T> GetAll()".
                     // The tests rely on DbContext.Users which is IQueryable<User> property often.
                     result.IsEfQuery = true;
-                }
                 break;
             }
             else if (current is ILocalReferenceOperation localRef)
@@ -166,15 +152,13 @@ public class MissingAsNoTrackingAnalyzer : DiagnosticAnalyzer
     private bool HasWriteOperations(IOperation operation)
     {
         // Find method body
-        IOperation? root = operation;
+        var root = operation;
         while (root.Parent != null)
         {
-            if (root is IMethodBodyOperation || 
-                root is ILocalFunctionOperation || 
+            if (root is IMethodBodyOperation ||
+                root is ILocalFunctionOperation ||
                 root is IAnonymousFunctionOperation)
-            {
                 break;
-            }
             root = root.Parent;
         }
 
@@ -183,34 +167,33 @@ public class MissingAsNoTrackingAnalyzer : DiagnosticAnalyzer
         // Walk the body to find SaveChanges
         var hasWrite = false;
         foreach (var descendant in root.Descendants())
-        {
             if (descendant is IInvocationOperation inv)
             {
-                if (inv.TargetMethod.Name == "SaveChanges" || 
+                if (inv.TargetMethod.Name == "SaveChanges" ||
                     inv.TargetMethod.Name == "SaveChangesAsync")
                 {
                     hasWrite = true;
                     break;
                 }
-                
+
                 // Also check for Add, Update, Remove on DbSet?
                 // Ideally yes, but SaveChanges is the commit point. 
                 // If they Add but don't SaveChanges in this method, tracking is still technically needed?
                 // Yes, because the Context tracks it.
                 // So if they call Add(), we should assume tracking is needed.
-                
                 var name = inv.TargetMethod.Name;
-                var receiverType = inv.Instance?.Type ?? (inv.Arguments.Length > 0 ? inv.Arguments[0].Value.Type : null);
-                
-                if ((name == "Add" || name == "AddAsync" || 
-                     name == "Update" || name == "Remove" || name == "RemoveRange" || name == "AddRange" || name == "AddRangeAsync") &&
+                var receiverType =
+                    inv.Instance?.Type ?? (inv.Arguments.Length > 0 ? inv.Arguments[0].Value.Type : null);
+
+                if ((name == "Add" || name == "AddAsync" ||
+                     name == "Update" || name == "Remove" || name == "RemoveRange" || name == "AddRange" ||
+                     name == "AddRangeAsync") &&
                     (receiverType.IsDbSet() || receiverType.IsDbContext()))
                 {
-                    hasWrite = true; 
+                    hasWrite = true;
                     break;
                 }
             }
-        }
 
         return hasWrite;
     }
@@ -219,5 +202,13 @@ public class MissingAsNoTrackingAnalyzer : DiagnosticAnalyzer
     {
         var sym = operation.SemanticModel?.GetEnclosingSymbol(operation.Syntax.SpanStart);
         return sym?.Name ?? "Unknown";
+    }
+
+    private class ChainAnalysis
+    {
+        public bool IsEfQuery { get; set; }
+        public bool HasAsNoTracking { get; set; }
+        public bool HasAsTracking { get; set; }
+        public bool HasSelect { get; set; }
     }
 }

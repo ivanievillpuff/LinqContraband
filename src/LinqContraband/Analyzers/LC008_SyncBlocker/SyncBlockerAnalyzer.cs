@@ -29,8 +29,6 @@ public class SyncBlockerAnalyzer : DiagnosticAnalyzer
         true,
         Description);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
-
     private static readonly Dictionary<string, string> SyncToAsyncMap = new()
     {
         // Queryable extensions
@@ -52,11 +50,13 @@ public class SyncBlockerAnalyzer : DiagnosticAnalyzer
         { "Max", "MaxAsync" },
         { "Sum", "SumAsync" },
         { "Average", "AverageAsync" },
-        
+
         // DbContext / DbSet methods
         { "SaveChanges", "SaveChangesAsync" },
-        { "Find", "FindAsync" },
+        { "Find", "FindAsync" }
     };
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -87,16 +87,11 @@ public class SyncBlockerAnalyzer : DiagnosticAnalyzer
     {
         // Case A: DbContext.SaveChanges
         if (method.Name == "SaveChanges")
-        {
             // Check if instance is DbContext
             return IsDbContext(method.ContainingType);
-        }
 
         // Case B: DbSet.Find
-        if (method.Name == "Find")
-        {
-            return IsDbSet(method.ContainingType);
-        }
+        if (method.Name == "Find") return IsDbSet(method.ContainingType);
 
         // Case C: LINQ Extension methods on IQueryable
         // These are usually defined in System.Linq.Queryable OR Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions
@@ -128,11 +123,12 @@ public class SyncBlockerAnalyzer : DiagnosticAnalyzer
         var current = type;
         while (current != null)
         {
-            if (current.Name == "DbContext" && 
+            if (current.Name == "DbContext" &&
                 current.ContainingNamespace?.ToString() == "Microsoft.EntityFrameworkCore")
                 return true;
             current = current.BaseType;
         }
+
         return false;
     }
 
@@ -141,11 +137,12 @@ public class SyncBlockerAnalyzer : DiagnosticAnalyzer
         var current = type;
         while (current != null)
         {
-            if (current.Name == "DbSet" && 
+            if (current.Name == "DbSet" &&
                 current.ContainingNamespace?.ToString() == "Microsoft.EntityFrameworkCore")
                 return true;
             current = current.BaseType;
         }
+
         return false;
     }
 
@@ -163,16 +160,10 @@ public class SyncBlockerAnalyzer : DiagnosticAnalyzer
                 // Actually, semantic model gives us the enclosing symbol.
                 // But we are in Operation context.
             }
-            
-            if (parent is ILocalFunctionOperation localFunc)
-            {
-                return localFunc.Symbol.IsAsync;
-            }
-            
-            if (parent is IAnonymousFunctionOperation lambda)
-            {
-                return lambda.Symbol.IsAsync;
-            }
+
+            if (parent is ILocalFunctionOperation localFunc) return localFunc.Symbol.IsAsync;
+
+            if (parent is IAnonymousFunctionOperation lambda) return lambda.Symbol.IsAsync;
 
             parent = parent.Parent;
         }
@@ -182,12 +173,10 @@ public class SyncBlockerAnalyzer : DiagnosticAnalyzer
         // But we need to walk up if we are in a lambda.
         // Actually, Operation walking is safer for lambdas.
         // If we didn't find a lambda or local function above, we check the owning symbol of the operation context.
-        
+
         // Wait, context.ContainingSymbol is the method containing the code.
         if (operation.SemanticModel?.GetEnclosingSymbol(operation.Syntax.SpanStart) is IMethodSymbol methodSymbol)
-        {
-             return methodSymbol.IsAsync;
-        }
+            return methodSymbol.IsAsync;
 
         return false;
     }

@@ -1,10 +1,12 @@
-using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<LinqContraband.Analyzers.LC013_DisposedContextQuery.DisposedContextQueryAnalyzer>;
+using VerifyCS =
+    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+        LinqContraband.Analyzers.LC013_DisposedContextQuery.DisposedContextQueryAnalyzer>;
 
-namespace LinqContraband.Tests.Analyzers.LC013_DisposedContextQuery
+namespace LinqContraband.Tests.Analyzers.LC013_DisposedContextQuery;
+
+public class DisposedContextQueryEdgeCasesTests
 {
-    public class DisposedContextQueryEdgeCasesTests
-    {
-        private const string Usings = @"
+    private const string Usings = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +14,7 @@ using System.Threading.Tasks;
 using TestNamespace;
 ";
 
-        private const string MockNamespace = @"
+    private const string MockNamespace = @"
 namespace TestNamespace
 {
     public class User { public int Id { get; set; } }
@@ -34,10 +36,10 @@ namespace TestNamespace
 }
 ";
 
-        [Fact]
-        public async Task DisposedContext_ConditionalReturn_ShouldTrigger()
-        {
-            var test = Usings + @"
+    [Fact]
+    public async Task DisposedContext_ConditionalReturn_ShouldTrigger()
+    {
+        var test = Usings + @"
 class Program
 {
     public IQueryable<User> GetUsers(bool condition)
@@ -47,13 +49,13 @@ class Program
         return condition ? {|LC013:db.Set<User>()|} : {|LC013:db.Set<User>()|};
     }
 }" + MockNamespace;
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 
-        [Fact]
-        public async Task DisposedContext_CoalesceReturn_ShouldTrigger()
-        {
-            var test = Usings + @"
+    [Fact]
+    public async Task DisposedContext_CoalesceReturn_ShouldTrigger()
+    {
+        var test = Usings + @"
 class Program
 {
     public IQueryable<User> GetUsers(IQueryable<User> other)
@@ -62,7 +64,6 @@ class Program
         return other ?? {|LC013:db.Set<User>()|};
     }
 }" + MockNamespace;
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 }

@@ -1,6 +1,5 @@
-using VerifyCS =
-    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
-        LinqContraband.Analyzers.LC008_SyncBlocker.SyncBlockerAnalyzer>;
+using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+    LinqContraband.Analyzers.LC008_SyncBlocker.SyncBlockerAnalyzer>;
 
 namespace LinqContraband.Tests.Analyzers.LC008_SyncBlocker;
 

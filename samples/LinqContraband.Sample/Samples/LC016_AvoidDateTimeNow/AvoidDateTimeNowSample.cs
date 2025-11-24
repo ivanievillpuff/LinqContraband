@@ -1,7 +1,5 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using LinqContraband.Sample.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace LinqContraband.Sample.Samples.LC016_AvoidDateTimeNow;
 
@@ -20,12 +18,14 @@ public class AvoidDateTimeNowSample
         // This prevents query plan caching because the constant value changes every execution.
         // It also makes unit testing impossible without mocking the system clock.
         var badQuery = _db.ConfigurationEntities
+            .AsNoTracking()
             .Where(c => c.CreatedAt < DateTime.Now)
             .ToList();
 
         // ✅ The Fix: Store the date in a variable first.
         var now = DateTime.Now;
         var goodQuery = _db.ConfigurationEntities
+            .AsNoTracking()
             .Where(c => c.CreatedAt < now)
             .ToList();
     }

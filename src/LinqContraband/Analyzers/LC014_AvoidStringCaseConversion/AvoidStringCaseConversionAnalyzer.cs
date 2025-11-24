@@ -29,8 +29,6 @@ public class AvoidStringCaseConversionAnalyzer : DiagnosticAnalyzer
         true,
         Description);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
-
     private static readonly HashSet<string> CaseConversionMethods = new()
     {
         "ToLower",
@@ -52,6 +50,8 @@ public class AvoidStringCaseConversionAnalyzer : DiagnosticAnalyzer
         "Join", "GroupJoin"
     };
 
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+
     public override void Initialize(AnalysisContext context)
     {
         context.EnableConcurrentExecution();
@@ -66,7 +66,7 @@ public class AvoidStringCaseConversionAnalyzer : DiagnosticAnalyzer
 
         // 1. Check if it is ToLower/ToUpper
         if (!CaseConversionMethods.Contains(method.Name)) return;
-        
+
         // Check if it belongs to System.String
         if (method.ContainingType.SpecialType != SpecialType.System_String) return;
 
@@ -95,17 +95,17 @@ public class AvoidStringCaseConversionAnalyzer : DiagnosticAnalyzer
                 if (parent is IArgumentOperation argument &&
                     argument.Parent is IInvocationOperation linqInvocation)
                 {
-                     var method = linqInvocation.TargetMethod;
-                     if (TargetLinqMethods.Contains(method.Name) &&
-                         method.ContainingType.Name == "Queryable" &&
-                         method.ContainingNamespace?.ToString() == "System.Linq")
-                     {
-                         return lambda.Symbol.Parameters;
-                     }
+                    var method = linqInvocation.TargetMethod;
+                    if (TargetLinqMethods.Contains(method.Name) &&
+                        method.ContainingType.Name == "Queryable" &&
+                        method.ContainingNamespace?.ToString() == "System.Linq")
+                        return lambda.Symbol.Parameters;
                 }
             }
+
             current = current.Parent;
         }
+
         return ImmutableArray<IParameterSymbol>.Empty;
     }
 
@@ -117,43 +117,30 @@ public class AvoidStringCaseConversionAnalyzer : DiagnosticAnalyzer
         operation = operation.UnwrapConversions();
 
         // If it's a parameter reference, check if it matches our target lambda parameters
-        if (operation is IParameterReferenceOperation paramRef)
-        {
-            return targetParameters.Contains(paramRef.Parameter);
-        }
+        if (operation is IParameterReferenceOperation paramRef) return targetParameters.Contains(paramRef.Parameter);
 
         // If it's a property reference, check the instance of the property
         if (operation is IPropertyReferenceOperation propRef)
-        {
             return ReceiverDependsOnParameter(propRef.Instance, targetParameters);
-        }
 
         // If it's a method call (chained), check the instance
         if (operation is IInvocationOperation invocation)
-        {
-             return ReceiverDependsOnParameter(invocation.Instance, targetParameters);
-        }
-        
+            return ReceiverDependsOnParameter(invocation.Instance, targetParameters);
+
         // If it's an array/indexer access
         if (operation is IPropertyReferenceOperation indexer && indexer.Arguments.Length > 0)
-        {
-             return ReceiverDependsOnParameter(indexer.Instance, targetParameters);
-        }
+            return ReceiverDependsOnParameter(indexer.Instance, targetParameters);
 
         // Binary Operator
         if (operation is IBinaryOperation binaryOp)
-        {
-            return ReceiverDependsOnParameter(binaryOp.LeftOperand, targetParameters) || 
+            return ReceiverDependsOnParameter(binaryOp.LeftOperand, targetParameters) ||
                    ReceiverDependsOnParameter(binaryOp.RightOperand, targetParameters);
-        }
-        
+
         // Coalesce Operator
         if (operation is ICoalesceOperation coalesce)
-        {
-             return ReceiverDependsOnParameter(coalesce.Value, targetParameters) || 
-                    ReceiverDependsOnParameter(coalesce.WhenNull, targetParameters);
-        }
-        
+            return ReceiverDependsOnParameter(coalesce.Value, targetParameters) ||
+                   ReceiverDependsOnParameter(coalesce.WhenNull, targetParameters);
+
         if (operation.Kind == OperationKind.ConditionalAccess)
         {
             var conditional = (IConditionalAccessOperation)operation;
@@ -164,11 +151,9 @@ public class AvoidStringCaseConversionAnalyzer : DiagnosticAnalyzer
         {
             var parent = operation.Parent; // Invocation (ToLower)
             var grandParent = parent?.Parent; // ConditionalAccessOperation
-            
+
             if (grandParent is IConditionalAccessOperation caOp)
-            {
                 return ReceiverDependsOnParameter(caOp.Operation, targetParameters);
-            }
         }
 
         return false;

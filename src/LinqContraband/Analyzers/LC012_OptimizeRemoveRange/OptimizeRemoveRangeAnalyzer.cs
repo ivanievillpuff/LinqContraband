@@ -62,6 +62,7 @@ public class OptimizeRemoveRangeAnalyzer : DiagnosticAnalyzer
                 return true;
             current = current.BaseType;
         }
+
         return false;
     }
 
@@ -76,7 +77,7 @@ public class OptimizeRemoveRangeAnalyzer : DiagnosticAnalyzer
                 return true;
             current = current.BaseType;
         }
+
         return false;
     }
 }
-

@@ -1,10 +1,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
-using CodeFixTest =
-    Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<
-        LinqContraband.Analyzers.LC008_SyncBlocker.SyncBlockerAnalyzer,
-        LinqContraband.Analyzers.LC008_SyncBlocker.SyncBlockerFixer,
-        Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<
+    LinqContraband.Analyzers.LC008_SyncBlocker.SyncBlockerAnalyzer,
+    LinqContraband.Analyzers.LC008_SyncBlocker.SyncBlockerFixer,
+    Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
 
 namespace LinqContraband.Tests.Analyzers.LC008_SyncBlocker;
 
@@ -90,9 +89,9 @@ class Program
         var testObj = new CodeFixTest
         {
             TestCode = test,
-            FixedCode = fixedCode,
+            FixedCode = fixedCode
         };
-        
+
         // Line 15
         testObj.ExpectedDiagnostics.Add(new DiagnosticResult("LC008", DiagnosticSeverity.Warning)
             .WithSpan(15, 21, 15, 38)
@@ -129,7 +128,7 @@ class Program
         var testObj = new CodeFixTest
         {
             TestCode = test,
-            FixedCode = fixedCode,
+            FixedCode = fixedCode
         };
 
         // Line 14

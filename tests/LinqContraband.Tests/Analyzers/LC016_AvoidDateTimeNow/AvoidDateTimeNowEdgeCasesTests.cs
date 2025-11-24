@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
     LinqContraband.Analyzers.LC016_AvoidDateTimeNow.AvoidDateTimeNowAnalyzer>;
 
@@ -159,7 +157,7 @@ class Test
 }";
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
-    
+
     [Fact]
     public async Task Diagnostic_TernaryOperator()
     {

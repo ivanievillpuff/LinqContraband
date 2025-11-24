@@ -1,19 +1,19 @@
-using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<LinqContraband.Analyzers.LC015_MissingOrderBy.MissingOrderByAnalyzer>;
-using System.Threading.Tasks;
-using Xunit;
+using VerifyCS =
+    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+        LinqContraband.Analyzers.LC015_MissingOrderBy.MissingOrderByAnalyzer>;
 
-namespace LinqContraband.Tests.Analyzers.LC015_MissingOrderBy
+namespace LinqContraband.Tests.Analyzers.LC015_MissingOrderBy;
+
+public class MissingOrderByTests
 {
-    public class MissingOrderByTests
-    {
-        private const string Usings = @"
+    private const string Usings = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using TestNamespace;
 ";
 
-        private const string MockNamespace = @"
+    private const string MockNamespace = @"
 namespace TestNamespace
 {
     public class User { public int Id { get; set; } public string Name { get; set; } }
@@ -34,10 +34,10 @@ namespace TestNamespace
 }
 ";
 
-        [Fact]
-        public async Task Skip_WithoutOrderBy_ShouldTrigger()
-        {
-            var test = Usings + @"
+    [Fact]
+    public async Task Skip_WithoutOrderBy_ShouldTrigger()
+    {
+        var test = Usings + @"
 namespace TestApp 
 {
     public class AppDbContext : DbContext { public DbSet<User> Users { get; set; } }
@@ -54,13 +54,13 @@ namespace TestApp
     }
 }" + MockNamespace;
 
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 
-        [Fact]
-        public async Task Last_WithoutOrderBy_ShouldTrigger()
-        {
-            var test = Usings + @"
+    [Fact]
+    public async Task Last_WithoutOrderBy_ShouldTrigger()
+    {
+        var test = Usings + @"
 namespace TestApp 
 {
     public class AppDbContext : DbContext { public DbSet<User> Users { get; set; } }
@@ -77,13 +77,13 @@ namespace TestApp
     }
 }" + MockNamespace;
 
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 
-        [Fact]
-        public async Task Skip_WithOrderBy_ShouldNotTrigger()
-        {
-            var test = Usings + @"
+    [Fact]
+    public async Task Skip_WithOrderBy_ShouldNotTrigger()
+    {
+        var test = Usings + @"
 namespace TestApp 
 {
     public class AppDbContext : DbContext { public DbSet<User> Users { get; set; } }
@@ -100,13 +100,13 @@ namespace TestApp
     }
 }" + MockNamespace;
 
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
-        
-        [Fact]
-        public async Task Skip_OnList_ShouldNotTrigger()
-        {
-            var test = Usings + @"
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task Skip_OnList_ShouldNotTrigger()
+    {
+        var test = Usings + @"
 namespace TestApp 
 {
     public class Program
@@ -121,7 +121,6 @@ namespace TestApp
     }
 }" + MockNamespace;
 
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 }

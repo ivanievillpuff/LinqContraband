@@ -1,17 +1,19 @@
-using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<LinqContraband.Analyzers.LC012_OptimizeRemoveRange.OptimizeRemoveRangeAnalyzer>;
+using VerifyCS =
+    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+        LinqContraband.Analyzers.LC012_OptimizeRemoveRange.OptimizeRemoveRangeAnalyzer>;
 
-namespace LinqContraband.Tests.Analyzers.LC012_OptimizeRemoveRange
+namespace LinqContraband.Tests.Analyzers.LC012_OptimizeRemoveRange;
+
+public class OptimizeRemoveRangeAnalyzerTests
 {
-    public class OptimizeRemoveRangeAnalyzerTests
-    {
-        private const string Usings = @"
+    private const string Usings = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using TestNamespace;
 ";
 
-        private const string MockNamespace = @"
+    private const string MockNamespace = @"
 namespace TestNamespace
 {
     public class User { public int Id { get; set; } }
@@ -44,10 +46,10 @@ namespace TestNamespace
 }
 ";
 
-        [Fact]
-        public async Task RemoveRange_OnDbSet_ShouldTrigger()
-        {
-            var test = Usings + @"
+    [Fact]
+    public async Task RemoveRange_OnDbSet_ShouldTrigger()
+    {
+        var test = Usings + @"
 namespace TestApp
 {
     public class AppDbContext : DbContext {}
@@ -65,13 +67,13 @@ namespace TestApp
     }
 }" + MockNamespace;
 
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 
-        [Fact]
-        public async Task RemoveRange_OnDbContext_ShouldTrigger()
-        {
-            var test = Usings + @"
+    [Fact]
+    public async Task RemoveRange_OnDbContext_ShouldTrigger()
+    {
+        var test = Usings + @"
 namespace TestApp
 {
     public class AppDbContext : DbContext {}
@@ -89,17 +91,17 @@ namespace TestApp
     }
 }" + MockNamespace;
 
-            await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 
-        [Fact]
-        public async Task ExecuteDelete_ShouldNotTrigger()
-        {
-            // Note: ExecuteDelete is EF7+. We mock it or just assume it exists?
-            // The analyzer checks for RemoveRange. So using ExecuteDelete won't trigger it anyway.
-            // But we should ensure innocent code doesn't trigger.
-            
-             var test = Usings + @"
+    [Fact]
+    public async Task ExecuteDelete_ShouldNotTrigger()
+    {
+        // Note: ExecuteDelete is EF7+. We mock it or just assume it exists?
+        // The analyzer checks for RemoveRange. So using ExecuteDelete won't trigger it anyway.
+        // But we should ensure innocent code doesn't trigger.
+
+        var test = Usings + @"
 namespace TestApp
 {
     public class AppDbContext : DbContext {}
@@ -115,8 +117,6 @@ namespace TestApp
     }
 }" + MockNamespace;
 
-             await VerifyCS.VerifyAnalyzerAsync(test);
-        }
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 }
-

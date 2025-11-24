@@ -55,12 +55,12 @@ public class MissingAsNoTrackingFixer : CodeFixProvider
 
         // sourceExpression is "db.Users"
         // We want to replace "db.Users" with "db.Users.AsNoTracking()"
-        
+
         var asNoTracking = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             sourceExpression,
             SyntaxFactory.IdentifierName("AsNoTracking"));
-        
+
         var asNoTrackingInvocation = SyntaxFactory.InvocationExpression(asNoTracking)
             .WithTriviaFrom(sourceExpression)
             .WithAdditionalAnnotations(Formatter.Annotation);
@@ -74,20 +74,14 @@ public class MissingAsNoTrackingFixer : CodeFixProvider
 
     private ExpressionSyntax? GetSourceExpression(ExpressionSyntax node)
     {
-        if (node is InvocationExpressionSyntax invocation)
-        {
-            return GetSourceExpression(invocation.Expression);
-        }
+        if (node is InvocationExpressionSyntax invocation) return GetSourceExpression(invocation.Expression);
 
         if (node is MemberAccessExpressionSyntax memberAccess)
         {
             // If this MemberAccess is the method name of an Invocation, keep digging.
             // e.g. .Where(...) -> Parent is Invocation.
-            if (memberAccess.Parent is InvocationExpressionSyntax)
-            {
-                return GetSourceExpression(memberAccess.Expression);
-            }
-            
+            if (memberAccess.Parent is InvocationExpressionSyntax) return GetSourceExpression(memberAccess.Expression);
+
             // If parent is NOT an invocation (e.g. it's another MemberAccess or Return), 
             // then THIS is the property/field we want (e.g. db.Users).
             return memberAccess;
@@ -100,9 +94,7 @@ public class MissingAsNoTrackingFixer : CodeFixProvider
     {
         if (expression is InvocationExpressionSyntax invocation &&
             invocation.Expression is MemberAccessExpressionSyntax ma)
-        {
             return ma.Name.Identifier.Text == methodName;
-        }
 
         return false;
     }
@@ -111,7 +103,7 @@ public class MissingAsNoTrackingFixer : CodeFixProvider
     {
         var root = editor.OriginalRoot as CompilationUnitSyntax;
         if (root == null) return;
-        
+
         // Check if using exists in ORIGINAL root first
         if (root.Usings.Any(u =>
                 u.Name?.ToString() == namespaceName ||
@@ -123,18 +115,18 @@ public class MissingAsNoTrackingFixer : CodeFixProvider
         // but here we were manually replacing the root node. 
         // DocumentEditor doesn't have a dedicated AddUsing method.
         // But we can replace the CompilationUnit with a new one that has the Using.
-        
+
         // Better approach: Use the editor to replace the CompilationUnit syntax node itself
         // but we must be careful not to invalidate previous edits if we replace the whole root?
         // DocumentEditor tracks nodes. 
-        
+
         // Actually, the safest way with DocumentEditor is to perform node-level edits.
         // But adding a using is a root-level edit.
-        
+
         // If we use editor.ReplaceNode(root, newRoot), it replaces the entire tree.
         // If we do this AFTER the node replacement, it might work IF the editor
         // can track the nodes in the new tree? No, it can't track across full tree replacements easily.
-        
+
         // However, reordering to do ReplaceNode FIRST (as done above) ensures the node reference 'sourceExpression'
         // is still valid when ReplaceNode is called.
         // Then we call EnsureUsing. EnsureUsing calls editor.ReplaceNode(root, ...).
@@ -145,26 +137,26 @@ public class MissingAsNoTrackingFixer : CodeFixProvider
         // DocumentEditor might conflict or the root replacement might overwrite the child replacement
         // if the "newRoot" we pass doesn't contain the child replacement.
         // But `root.AddUsings` creates a NEW tree from the OLD root (without the child replacement).
-        
+
         // So, simply reordering might NOT be enough if `AddUsings` operates on `editor.OriginalRoot`.
         // We are taking OriginalRoot (clean), adding a using -> NewRoot1.
         // We are taking SourceExpression (from OriginalRoot), replacing it -> Edit1.
         // If we tell Editor: "Replace Root with NewRoot1" AND "Replace SourceExpression with X",
         // The "Replace Root" might win or conflict.
-        
+
         // Standard practice with DocumentEditor for adding usings:
         // There isn't a built-in method.
         // We should use `ImportAdder` service if available, but that's in Workspaces.
         // Or, since we are in a Fixer, we can just manipulate the root directly?
         // But we want to use DocumentEditor for the node replacement.
-        
+
         // Let's try to insert the using directive into the Usings list instead of replacing the root.
         // CompilationUnitSyntax has a Usings property.
         // We can try: editor.InsertBefore(root.Members.First(), usingDirective) ?
         // Or editor.InsertAfter(root.Usings.Last(), usingDirective).
-        
+
         var usingDirective = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(namespaceName));
-        
+
         if (root.Usings.Any())
         {
             editor.InsertAfter(root.Usings.Last(), usingDirective);

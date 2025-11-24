@@ -57,6 +57,7 @@ public class PrematureMaterializationAnalyzer : DiagnosticAnalyzer
         receiverOp = Unwrap(receiverOp);
 
         if (receiverOp is IInvocationOperation previousInvocation)
+        {
             if (IsMaterializingMethod(previousInvocation.TargetMethod))
             {
                 // Check *that* method's receiver. Was it IQueryable?
@@ -71,6 +72,23 @@ public class PrematureMaterializationAnalyzer : DiagnosticAnalyzer
                     context.ReportDiagnostic(
                         Diagnostic.Create(Rule, invocation.Syntax.GetLocation(), methodSymbol.Name));
             }
+        }
+        else if (receiverOp is IObjectCreationOperation objectCreation)
+        {
+            if (objectCreation.Constructor != null && IsMaterializingConstructor(objectCreation.Constructor))
+            {
+                // Check constructor argument (usually the first one is the source collection)
+                if (objectCreation.Arguments.Length > 0)
+                {
+                    var sourceOp = objectCreation.Arguments[0].Value;
+                    sourceOp = Unwrap(sourceOp);
+                    
+                    if (sourceOp?.Type != null && sourceOp.Type.IsIQueryable())
+                         context.ReportDiagnostic(
+                             Diagnostic.Create(Rule, invocation.Syntax.GetLocation(), methodSymbol.Name));
+                }
+            }
+        }
     }
 
     private IOperation? Unwrap(IOperation? op)
@@ -103,5 +121,20 @@ public class PrematureMaterializationAnalyzer : DiagnosticAnalyzer
                method.Name == "ToHashSet" ||
                method.Name == "ToHashSetAsync" ||
                method.Name == "ToLookup";
+    }
+
+    private bool IsMaterializingConstructor(IMethodSymbol constructor)
+    {
+        var type = constructor.ContainingType;
+        if (type.ContainingNamespace?.ToString() != "System.Collections.Generic") return false;
+
+        return type.Name == "List" ||
+               type.Name == "HashSet" ||
+               type.Name == "Dictionary" ||
+               type.Name == "SortedDictionary" ||
+               type.Name == "SortedList" ||
+               type.Name == "LinkedList" ||
+               type.Name == "Queue" ||
+               type.Name == "Stack";
     }
 }

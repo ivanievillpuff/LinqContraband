@@ -39,7 +39,7 @@ public class SyncBlockerFixer : CodeFixProvider
         { "Sum", "SumAsync" },
         { "Average", "AverageAsync" },
         { "SaveChanges", "SaveChangesAsync" },
-        { "Find", "FindAsync" },
+        { "Find", "FindAsync" }
     };
 
     public sealed override ImmutableArray<string> FixableDiagnosticIds =>
@@ -64,14 +64,12 @@ public class SyncBlockerFixer : CodeFixProvider
         {
             var methodName = memberAccess.Name.Identifier.Text;
             if (SyncToAsyncMap.TryGetValue(methodName, out var asyncMethodName))
-            {
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         $"Use {asyncMethodName} and await",
                         c => ApplyFixAsync(context.Document, invocation, asyncMethodName, c),
                         "UseAsyncMethod"),
                     diagnostic);
-            }
         }
     }
 
@@ -95,7 +93,7 @@ public class SyncBlockerFixer : CodeFixProvider
 
         // We need to clear trivia from the inner invocation to avoid duplication/messy formatting
         newInvocation = newInvocation.WithoutLeadingTrivia().WithoutTrailingTrivia();
-        
+
         // Re-attach to await
         awaitExpression = awaitExpression.WithExpression(newInvocation);
 

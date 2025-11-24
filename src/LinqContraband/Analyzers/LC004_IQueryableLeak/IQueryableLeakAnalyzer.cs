@@ -61,12 +61,10 @@ public class IQueryableLeakAnalyzer : DiagnosticAnalyzer
             // We need to check if the underlying object being passed is IQueryable.
             // This requires peeling back conversions.
             if (IsSourceIQueryable(argValue))
-            {
                 context.ReportDiagnostic(
                     Diagnostic.Create(Rule, argument.Syntax.GetLocation(),
                         argument.Parameter.Name,
                         paramType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)));
-            }
         }
     }
 
@@ -76,15 +74,17 @@ public class IQueryableLeakAnalyzer : DiagnosticAnalyzer
         if (type.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T) return true;
 
         // Check by name for robustness (especially in tests/mocks)
-        if (type.Name == "IEnumerable" && type.ContainingNamespace?.ToString() == "System.Collections.Generic") return true;
+        if (type.Name == "IEnumerable" &&
+            type.ContainingNamespace?.ToString() == "System.Collections.Generic") return true;
         if (type.Name == "IEnumerable" && type.ContainingNamespace?.ToString() == "System.Collections") return true;
 
         foreach (var i in type.AllInterfaces)
         {
-             if (i.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
-                 i.SpecialType == SpecialType.System_Collections_IEnumerable) return true;
+            if (i.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
+                i.SpecialType == SpecialType.System_Collections_IEnumerable) return true;
 
-             if (i.Name == "IEnumerable" && i.ContainingNamespace?.ToString() == "System.Collections.Generic") return true;
+            if (i.Name == "IEnumerable" && i.ContainingNamespace?.ToString() == "System.Collections.Generic")
+                return true;
         }
 
         return false;
@@ -92,7 +92,7 @@ public class IQueryableLeakAnalyzer : DiagnosticAnalyzer
 
     private bool IsIQueryable(ITypeSymbol type)
     {
-         return type.IsIQueryable();
+        return type.IsIQueryable();
     }
 
     private bool IsSourceIQueryable(IOperation operation)
@@ -100,10 +100,7 @@ public class IQueryableLeakAnalyzer : DiagnosticAnalyzer
         var current = operation;
 
         // Walk back conversions to find the real source
-        while (current is IConversionOperation conv)
-        {
-            current = conv.Operand;
-        }
+        while (current is IConversionOperation conv) current = conv.Operand;
 
         // Check if the source type is IQueryable
         return current.Type != null && IsIQueryable(current.Type);

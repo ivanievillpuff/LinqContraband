@@ -1,6 +1,5 @@
-using VerifyCS =
-    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
-        LinqContraband.Analyzers.LC006_CartesianExplosion.CartesianExplosionAnalyzer>;
+using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+    LinqContraband.Analyzers.LC006_CartesianExplosion.CartesianExplosionAnalyzer>;
 
 namespace LinqContraband.Tests.Analyzers.LC006_CartesianExplosion;
 
@@ -91,7 +90,7 @@ class Program
         // Line 15 starts with `var query = ...`
         // The usage `db.Users...` starts at column 21.
         var expected = VerifyCS.Diagnostic("LC006")
-            .WithSpan(15, 21, 15, 74) 
+            .WithSpan(15, 21, 15, 74)
             .WithArguments("List<Role>");
 
         await VerifyCS.VerifyAnalyzerAsync(test, expected);

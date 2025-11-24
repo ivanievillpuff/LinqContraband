@@ -1,6 +1,5 @@
-using VerifyCS =
-    Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
-        LinqContraband.Analyzers.LC007_NPlusOneLooper.NPlusOneLooperAnalyzer>;
+using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<
+    LinqContraband.Analyzers.LC007_NPlusOneLooper.NPlusOneLooperAnalyzer>;
 
 namespace LinqContraband.Tests.Analyzers.LC007_NPlusOneLooper;
 
@@ -72,7 +71,7 @@ class Program
 " + MockNamespace;
 
         var expected = VerifyCS.Diagnostic("LC007")
-            .WithSpan(19, 24, 19, 78) 
+            .WithSpan(19, 24, 19, 78)
             .WithArguments("ToList");
 
         await VerifyCS.VerifyAnalyzerAsync(test, expected);
@@ -179,7 +178,7 @@ class Program
 
         await VerifyCS.VerifyAnalyzerAsync(test, expected);
     }
-    
+
     [Fact]
     public async Task TestInnocent_DeferredExecution_InsideLoop_NoDiagnostic()
     {
