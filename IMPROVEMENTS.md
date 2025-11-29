@@ -20,7 +20,7 @@ This file tracks planned improvements and technical debt cleanup for the LinqCon
         - Create `tests/LinqContraband.Tests/Analyzers/LC014_AvoidStringCaseConversion/AvoidStringCaseConversionFixerTests.cs`
 
 ### 3. Future Considerations (Backlog)
-- [ ] **Implement Code Fix for LC015 (MissingOrderBy)**
+- [x] **Implement Code Fix for LC015 (MissingOrderBy)**
     - **Idea:** Suggest adding `.OrderBy(x => x.Id)` before `Skip`/`Take`/`Last`.
 - [x] **New Analyzer: `DateTime.Now` in Queries**
     - **Idea:** Flag `DateTime.Now` to encourage passing it as a variable for better query caching/testing.

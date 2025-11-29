@@ -184,4 +184,44 @@ public static class AnalysisExtensions
             "Sum" or "Average" or "Min" or "Max" or
             "SumAsync" or "AverageAsync" or "MinAsync" or "MaxAsync";
     }
+
+    /// <summary>
+    /// Tries to find a primary key property on the given entity type using EF Core conventions and [Key] attribute.
+    /// </summary>
+    /// <param name="entityType">The entity type symbol.</param>
+    /// <returns>The name of the primary key property, or null if not found.</returns>
+    public static string? TryFindPrimaryKey(this ITypeSymbol entityType)
+    {
+        var current = entityType;
+        while (current != null && current.SpecialType != SpecialType.System_Object)
+        {
+            foreach (var member in current.GetMembers())
+            {
+                if (member is not IPropertySymbol prop) continue;
+                if (prop.DeclaredAccessibility != Accessibility.Public) continue;
+
+                // Check [Key] attribute
+                foreach (var attr in prop.GetAttributes())
+                {
+                    if (attr.AttributeClass == null) continue;
+                    if (attr.AttributeClass.Name == "KeyAttribute" ||
+                        (attr.AttributeClass.Name == "Key" &&
+                         attr.AttributeClass.ContainingNamespace?.ToString().StartsWith("System.ComponentModel.DataAnnotations") == true))
+                    {
+                        return prop.Name;
+                    }
+                }
+
+                // Check Convention: Id
+                if (prop.Name.Equals("Id", StringComparison.OrdinalIgnoreCase)) return prop.Name;
+
+                // Check Convention: {Entity}Id
+                if (prop.Name.Equals($"{entityType.Name}Id", StringComparison.OrdinalIgnoreCase)) return prop.Name;
+            }
+
+            current = current.BaseType;
+        }
+
+        return null;
+    }
 }
