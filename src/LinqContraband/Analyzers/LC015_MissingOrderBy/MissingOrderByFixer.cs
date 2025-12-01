@@ -37,42 +37,43 @@ public class MissingOrderByFixer : CodeFixProvider
         var invocation = root?.FindNode(diagnosticSpan).FirstAncestorOrSelf<InvocationExpressionSyntax>();
         if (invocation == null) return;
 
+        // Pre-check if we can determine the primary key before registering the fix
+        // This prevents offering a code fix when we can't reliably generate valid code
+        var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+        if (semanticModel == null) return;
+
+        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) return;
+
+        var sourceExpression = memberAccess.Expression;
+        var sourceType = semanticModel.GetTypeInfo(sourceExpression).Type;
+
+        ITypeSymbol? entityType = null;
+        if (sourceType is INamedTypeSymbol namedType && namedType.TypeArguments.Length > 0)
+            entityType = namedType.TypeArguments[0];
+
+        if (entityType == null) return;
+
+        var keyName = entityType.TryFindPrimaryKey();
+        if (keyName == null) return; // Don't offer fix if we can't determine the primary key
+
         context.RegisterCodeFix(
             CodeAction.Create(
                 "Add OrderBy",
-                c => AddOrderByAsync(context.Document, invocation, c),
+                c => AddOrderByAsync(context.Document, invocation, keyName, c),
                 nameof(MissingOrderByFixer)),
             diagnostic);
     }
 
     private async Task<Document> AddOrderByAsync(Document document, InvocationExpressionSyntax invocation,
-        CancellationToken cancellationToken)
+        string keyName, CancellationToken cancellationToken)
     {
-        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) return document;
 
         var sourceExpression = memberAccess.Expression;
-        var sourceType = semanticModel?.GetTypeInfo(sourceExpression).Type;
 
-        // Determine Entity Type T from IQueryable<T>
-        ITypeSymbol? entityType = null;
-        if (sourceType is INamedTypeSymbol namedType)
-        {
-            if (namedType.TypeArguments.Length > 0)
-                entityType = namedType.TypeArguments[0];
-        }
-
-        // Find Primary Key or default to "Id"
-        var keyName = "Id";
-        if (entityType != null)
-        {
-            var foundKey = entityType.TryFindPrimaryKey();
-            if (foundKey != null) keyName = foundKey;
-        }
-
-        // Generate: .OrderBy(x => x.Id)
+        // Generate: .OrderBy(x => x.{keyName})
         var generator = editor.Generator;
         
         // Lambda: x => x.Id

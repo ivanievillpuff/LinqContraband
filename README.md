@@ -574,6 +574,39 @@ var query = db.Users.Where(u => u.Dob < now);
 
 ---
 
+### LC017: Whole Entity Projection
+
+Loading entire entities when you only need a few properties wastes bandwidth, memory, and CPU. For large entities with
+10+ properties, this can result in 10-40x more data transfer than necessary.
+
+**👶 Explain it like I'm a ten year old:** Imagine you want to know your friend's phone number. Instead of asking for
+just the number, you ask them to recite their entire autobiography—name, address, favorite foods, every vacation
+they've ever taken. You only needed one fact, but you got a whole book.
+
+**❌ The Crime:**
+
+```csharp
+// Loads all 12 columns for every product, but only uses Name
+var products = db.Products.Where(p => p.Price > 100).ToList();
+foreach (var p in products)
+{
+    Console.WriteLine(p.Name);  // Only Name is ever accessed!
+}
+```
+
+**✅ The Fix:**
+Use `.Select()` to project only what you need.
+
+```csharp
+// Projects only the Name column
+var names = db.Products
+    .Where(p => p.Price > 100)
+    .Select(p => p.Name)
+    .ToList();
+```
+
+---
+
 ## ⚙️ Configuration
 
 You can configure the severity of these rules in your `.editorconfig` file:

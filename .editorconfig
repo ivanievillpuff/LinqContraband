@@ -57,3 +57,64 @@ dotnet_naming_symbols.non_field_members.required_modifiers =
 
 [*.{json,xml,yml}]
 indent_size = 2
+
+# =============================================================================
+# LinqContraband Analyzer Severity Configuration
+# =============================================================================
+# Uncomment and adjust the severity of any rule as needed.
+# Valid severity values: none, silent, suggestion, warning, error
+#
+# Example: To disable LC009 (Missing AsNoTracking):
+#   dotnet_diagnostic.LC009.severity = none
+#
+# Example: To make LC007 (N+1 Looper) an error:
+#   dotnet_diagnostic.LC007.severity = error
+# =============================================================================
+
+# LC001: Local Method Smuggler - Detects client-side evaluation from local methods
+# dotnet_diagnostic.LC001.severity = warning
+
+# LC002: Premature Materialization - Early ToList/AsEnumerable before filtering
+# dotnet_diagnostic.LC002.severity = warning
+
+# LC003: Prefer Any() over Count() - Using Count() > 0 instead of Any()
+# dotnet_diagnostic.LC003.severity = warning
+
+# LC004: Deferred Execution Leak - IQueryable passed to IEnumerable parameter
+# dotnet_diagnostic.LC004.severity = warning
+
+# LC005: Multiple OrderBy Calls - Chained OrderBy() that cancel each other
+# dotnet_diagnostic.LC005.severity = warning
+
+# LC006: Cartesian Explosion Risk - Multiple Include() without AsSplitQuery
+# dotnet_diagnostic.LC006.severity = warning
+
+# LC007: N+1 Looper - Database queries inside loops
+# dotnet_diagnostic.LC007.severity = warning
+
+# LC008: Sync-over-Async - Sync methods in async context
+# dotnet_diagnostic.LC008.severity = warning
+
+# LC009: The Tracking Tax - Missing AsNoTracking() on read-only queries
+# dotnet_diagnostic.LC009.severity = warning
+
+# LC010: SaveChanges Loop Tax - SaveChanges() inside a loop
+# dotnet_diagnostic.LC010.severity = warning
+
+# LC011: Entity Missing Primary Key - No Id, {Name}Id, [Key], or HasKey()
+# dotnet_diagnostic.LC011.severity = warning
+
+# LC012: Optimize Bulk Delete - RemoveRange() instead of ExecuteDelete()
+# dotnet_diagnostic.LC012.severity = warning
+
+# LC013: Disposed Context Query - Returning IQueryable from using-scoped context
+# dotnet_diagnostic.LC013.severity = warning
+
+# LC014: Avoid String Case Conversion - ToLower()/ToUpper() prevents index usage
+# dotnet_diagnostic.LC014.severity = warning
+
+# LC015: Missing OrderBy Before Skip/Last - Non-deterministic results
+# dotnet_diagnostic.LC015.severity = warning
+
+# LC016: Avoid DateTime.Now in Queries - Breaks query plan caching
+# dotnet_diagnostic.LC016.severity = warning

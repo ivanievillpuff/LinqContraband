@@ -84,7 +84,7 @@ public class NPlusOneLooperAnalyzer : DiagnosticAnalyzer
             receiverType = argVal.Type;
         }
 
-        return receiverType.IsIQueryable();
+        return receiverType?.IsIQueryable() == true;
     }
 
     private bool IsInsideLoop(IOperation operation)

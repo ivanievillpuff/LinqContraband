@@ -297,10 +297,21 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
             {
                 if (fullName.Contains('.'))
                 {
+                    // Use full display string comparison for precise matching
                     var typeFullName = type.ToDisplayString();
-                    if (typeFullName.EndsWith(fullName, StringComparison.Ordinal) ||
-                        fullName.EndsWith(type.Name, StringComparison.Ordinal))
+
+                    // Exact match takes priority
+                    if (typeFullName.Equals(fullName, StringComparison.Ordinal))
                         return type;
+
+                    // Allow partial match only if the full name ends with qualified name
+                    // and the type name starts at a namespace boundary (after a dot)
+                    if (typeFullName.EndsWith(fullName, StringComparison.Ordinal))
+                    {
+                        var prefixLength = typeFullName.Length - fullName.Length;
+                        if (prefixLength == 0 || typeFullName[prefixLength - 1] == '.')
+                            return type;
+                    }
                 }
                 else
                 {
@@ -311,7 +322,19 @@ public class EntityMissingPrimaryKeyAnalyzer : DiagnosticAnalyzer
             foreach (var nested in type.GetTypeMembers())
             {
                 if (nested.Name == simpleName)
-                    return nested;
+                {
+                    // For nested types, verify the containing type matches if fullName has dots
+                    if (fullName.Contains('.'))
+                    {
+                        var nestedFullName = nested.ToDisplayString();
+                        if (nestedFullName.EndsWith(fullName, StringComparison.Ordinal))
+                            return nested;
+                    }
+                    else
+                    {
+                        return nested;
+                    }
+                }
             }
         }
 

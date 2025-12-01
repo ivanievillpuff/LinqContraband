@@ -162,4 +162,51 @@ class Program
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
+
+    /// <summary>
+    /// Tests that methods receiving IQueryable parameters do NOT trigger a diagnostic.
+    /// This is because the caller controls tracking behavior, and the parameter could be
+    /// used in a write context outside this method's scope.
+    /// </summary>
+    [Fact]
+    public async Task TestInnocent_IQueryableParameter_NoDiagnostic()
+    {
+        var test = Usings + @"
+class Program
+{
+    // Repository pattern: IQueryable param could be used for writes by caller
+    public List<User> FilterUsers(IQueryable<User> query)
+    {
+        return query.Where(u => u.Id > 0).ToList();
+    }
+}
+" + MockNamespace;
+
+        // Should NOT report diagnostic - we can't determine caller's tracking intent
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    /// <summary>
+    /// Tests that DbSet parameters STILL trigger a diagnostic since DbSet is
+    /// a concrete EF type we can confidently identify.
+    /// </summary>
+    [Fact]
+    public async Task TestCrime_DbSetParameter_TriggersDiagnostic()
+    {
+        var test = Usings + @"
+class Program
+{
+    public List<User> FilterUsers(DbSet<User> users)
+    {
+        return users.Where(u => u.Id > 0).ToList();
+    }
+}
+" + MockNamespace;
+
+        var expected = VerifyCS.Diagnostic("LC009")
+            .WithSpan(13, 16, 13, 51)
+            .WithArguments("FilterUsers");
+
+        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+    }
 }

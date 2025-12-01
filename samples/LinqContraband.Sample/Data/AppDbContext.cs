@@ -28,6 +28,15 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new ConfigurationEntityConfiguration());
     }
 
+    #region LC017 - Whole Entity Projection Test Cases
+
+    /// <summary>
+    ///     Large entity with 12 properties for testing whole entity projection detection.
+    /// </summary>
+    public DbSet<LargeEntity> LargeEntities { get; set; } = null!;
+
+    #endregion
+
     #region LC011 - Entity Missing Primary Key Test Cases
 
     /// <summary>
@@ -113,6 +122,27 @@ public class ValidKeyAttributeEntity
 public class ValidFluentEntity
 {
     public int CodeKey { get; set; }
+}
+
+// --- LC017 Test Entity ---
+
+/// <summary>
+///     Large entity with 12 properties for testing whole entity projection detection.
+/// </summary>
+public class LargeEntity
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+    public string City { get; set; } = string.Empty;
+    public string Country { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public int Quantity { get; set; }
 }
 
 #endregion
