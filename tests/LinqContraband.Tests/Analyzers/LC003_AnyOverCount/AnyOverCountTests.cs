@@ -150,4 +150,89 @@ namespace LinqContraband.Test
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
+
+
+
+    [Fact]
+    public async Task CountAsync_GreaterThanZero_ShouldTriggerLC003()
+    {
+        var test = Usings + @"
+using System.Threading.Tasks;
+namespace Microsoft.EntityFrameworkCore
+{
+    public static class EntityFrameworkQueryableExtensions
+    {
+        public static Task<int> CountAsync<TSource>(this IQueryable<TSource> source, System.Threading.CancellationToken cancellationToken = default) => Task.FromResult(0);
+    }
+}
+namespace LinqContraband.Test
+{
+    public class TestClass
+    {
+        public async Task TestMethod()
+        {
+            var query = new List<int>().AsQueryable();
+            var count = await query.CountAsync();
+            if (count > 0)
+            {
+            }
+        }
+    }
+}
+";
+        // Wait, current analyzer handles binary expression.
+        // If I assigned to variable, it's harder.
+        // The pattern I want to catch is "await query.CountAsync() > 0" directly in expression if possible,
+        // or just the expression.
+        
+        // Let's use direct expression:
+        var test2 = Usings + @"
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+
+namespace Microsoft.EntityFrameworkCore
+{
+    public static class EntityFrameworkQueryableExtensions
+    {
+        public static Task<int> CountAsync<TSource>(this IQueryable<TSource> source, System.Threading.CancellationToken cancellationToken = default) => Task.FromResult(0);
+    }
+}
+namespace LinqContraband.Test
+{
+    public class TestClass
+    {
+        public async Task TestMethod()
+        {
+            var query = new List<int>().AsQueryable();
+            if (await query.CountAsync() > 0)
+            {
+            }
+        }
+    }
+}
+";
+
+         // Line calculation:
+         // Usings (6 lines)
+         // L7: using System.Threading.Tasks;
+         // L8: namespace MF...
+         // L9: {
+         // L10: public static...
+         // L11:     public static...
+         // L12: }
+         // L13: }
+         // L14: namespace LC.Test
+         // L15: {
+         // L16: class
+         // L17: {
+         // L18: method
+         // L19: {
+         // L20: var query...
+         // L21: if (await query.CountAsync() > 0)
+         
+        var expected = VerifyCS.Diagnostic("LC003")
+            .WithSpan(23, 17, 23, 45);
+            
+        await VerifyCS.VerifyAnalyzerAsync(test2, expected);
+    }
 }

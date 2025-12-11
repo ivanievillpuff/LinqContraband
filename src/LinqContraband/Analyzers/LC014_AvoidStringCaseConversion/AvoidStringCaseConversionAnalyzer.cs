@@ -123,7 +123,7 @@ public class AvoidStringCaseConversionAnalyzer : DiagnosticAnalyzer
         if (operation == null) return false;
 
         // Unwrap conversions
-        operation = operation.UnwrapConversions();
+        operation = operation!.UnwrapConversions();
 
         // If it's a parameter reference, check if it matches our target lambda parameters
         if (operation is IParameterReferenceOperation paramRef) return targetParameters.Contains(paramRef.Parameter);

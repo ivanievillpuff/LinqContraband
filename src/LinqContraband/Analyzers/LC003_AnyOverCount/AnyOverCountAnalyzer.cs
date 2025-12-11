@@ -115,15 +115,36 @@ public class AnyOverCountAnalyzer : DiagnosticAnalyzer
 
         if (!isMatch) return;
 
-        // Unwrap implicit conversions if any
-        while (countInvocation is IConversionOperation conversion) countInvocation = conversion.Operand;
+        // Unwrap implicit conversions or await operations
+        while (true)
+        {
+            if (countInvocation is IConversionOperation conversion)
+            {
+                countInvocation = conversion.Operand;
+            }
+            else if (countInvocation is IAwaitOperation awaitOp)
+            {
+                countInvocation = awaitOp.Operation;
+            }
+            else
+            {
+                break;
+            }
+        }
 
         if (countInvocation is IInvocationOperation invocation)
         {
             var method = invocation.TargetMethod;
-            if ((method.Name == "Count" || method.Name == "LongCount") &&
-                method.ContainingType.Name == "Queryable" && // Explicitly for IQueryable extension methods
-                method.ContainingNamespace?.ToString() == "System.Linq")
+            
+            var isSyncCount = (method.Name == "Count" || method.Name == "LongCount") &&
+                              method.ContainingType.Name == "Queryable" &&
+                              method.ContainingNamespace?.ToString() == "System.Linq";
+            
+            var isAsyncCount = (method.Name == "CountAsync" || method.Name == "LongCountAsync") &&
+                               method.ContainingType.Name == "EntityFrameworkQueryableExtensions" &&
+                               method.ContainingNamespace?.ToString() == "Microsoft.EntityFrameworkCore";
+
+            if (isSyncCount || isAsyncCount)
             {
                 // Check if the source is IQueryable
                 var receiverType = invocation.Arguments.Length > 0 ? invocation.Arguments[0].Value.Type : null;
@@ -136,8 +157,8 @@ public class AnyOverCountAnalyzer : DiagnosticAnalyzer
 
     private bool IsInvocation(IOperation op)
     {
-        op = op.UnwrapConversions();
-        return op is IInvocationOperation;
+        var unwrapped = op.UnwrapConversions();
+        return unwrapped is IInvocationOperation;
     }
 
     private bool IsConstant(IOperation op)

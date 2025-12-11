@@ -50,14 +50,14 @@ public static class AnalysisExtensions
     }
 
     /// <summary>
-    /// Unwraps conversion and parenthesized operations to get the underlying operand.
+    /// Unwraps conversion, parenthesized, and await operations to get the underlying operand.
     /// </summary>
     /// <param name="operation">The operation to unwrap.</param>
-    /// <returns>The innermost non-conversion, non-parenthesized operation.</returns>
+    /// <returns>The innermost non-conversion, non-parenthesized, non-awaited operation.</returns>
     public static IOperation UnwrapConversions(this IOperation operation)
     {
         var current = operation;
-        while (true)
+        while (current != null)
         {
             if (current is IConversionOperation conversion)
             {
@@ -71,10 +71,16 @@ public static class AnalysisExtensions
                 continue;
             }
 
+            if (current is IAwaitOperation awaitOp)
+            {
+                current = awaitOp.Operation;
+                continue;
+            }
+
             break;
         }
 
-        return current;
+        return current!;
     }
 
     /// <summary>

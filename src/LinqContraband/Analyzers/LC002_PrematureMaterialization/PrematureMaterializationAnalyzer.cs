@@ -63,7 +63,7 @@ public class PrematureMaterializationAnalyzer : DiagnosticAnalyzer
         var receiverOp = invocation.Instance ??
                          (invocation.Arguments.Length > 0 ? invocation.Arguments[0].Value : null);
 
-        receiverOp = Unwrap(receiverOp);
+        receiverOp = receiverOp?.UnwrapConversions();
 
         if (receiverOp is IInvocationOperation previousInvocation)
         {
@@ -74,7 +74,7 @@ public class PrematureMaterializationAnalyzer : DiagnosticAnalyzer
                                (previousInvocation.Arguments.Length > 0 ? previousInvocation.Arguments[0].Value : null);
 
                 // Handle conversion on sourceOp too (e.g. implicit conversion from List to IEnumerable in chain)
-                sourceOp = Unwrap(sourceOp);
+                sourceOp = sourceOp?.UnwrapConversions();
 
                 var sourceType = sourceOp?.Type;
                 if (sourceType.IsIQueryable())
@@ -90,7 +90,7 @@ public class PrematureMaterializationAnalyzer : DiagnosticAnalyzer
                 if (objectCreation.Arguments.Length > 0)
                 {
                     var sourceOp = objectCreation.Arguments[0].Value;
-                    sourceOp = Unwrap(sourceOp);
+                    sourceOp = sourceOp.UnwrapConversions();
                     
                     if (sourceOp?.Type != null && sourceOp.Type.IsIQueryable())
                          context.ReportDiagnostic(
@@ -98,14 +98,6 @@ public class PrematureMaterializationAnalyzer : DiagnosticAnalyzer
                 }
             }
         }
-    }
-
-    private IOperation? Unwrap(IOperation? op)
-    {
-        var current = op;
-        while (current is IConversionOperation conversion) current = conversion.Operand;
-        while (current is IAwaitOperation awaitOp) current = awaitOp.Operation;
-        return current;
     }
 
     private bool IsLinqOperator(IMethodSymbol method)
@@ -117,7 +109,7 @@ public class PrematureMaterializationAnalyzer : DiagnosticAnalyzer
     private bool IsMaterializingMethod(IMethodSymbol method)
     {
         var ns = method.ContainingNamespace?.ToString();
-        if (ns is not ("System.Linq" or "Microsoft.EntityFrameworkCore")) return false;
+        if (ns is not ("System.Linq" or "Microsoft.EntityFrameworkCore" or "System.Collections.Immutable")) return false;
 
         if (method.Name == "AsEnumerable") return true; // switches to client-side
 
@@ -129,7 +121,8 @@ public class PrematureMaterializationAnalyzer : DiagnosticAnalyzer
                method.Name == "ToDictionaryAsync" ||
                method.Name == "ToHashSet" ||
                method.Name == "ToHashSetAsync" ||
-               method.Name == "ToLookup";
+               method.Name == "ToLookup" ||
+               method.Name.StartsWith("ToImmutable");
     }
 
     private bool IsMaterializingConstructor(IMethodSymbol constructor)

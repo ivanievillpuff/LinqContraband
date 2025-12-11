@@ -133,4 +133,27 @@ class Program
     }
 
     // Async materialization coverage is TODO; current analyzer focuses on sync and awaits unwrapped cases.
+
+    [Fact]
+    public async Task TestCrime_ToImmutableListBeforeWhere_ShouldTriggerLC002()
+    {
+        var test = Usings + @"
+using System.Collections.Immutable;
+
+class Program
+{
+    void Main()
+    {
+        var db = new DbContext();
+        var query = db.Users.ToImmutableList().Where(x => x.Age > 18);
+    }
+}
+" + MockNamespace;
+
+        var expected = VerifyCS.Diagnostic("LC002")
+             .WithSpan(15, 21, 15, 70)
+             .WithArguments("Where");
+
+        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+    }
 }

@@ -87,7 +87,7 @@ public class MissingAsNoTrackingAnalyzer : DiagnosticAnalyzer
         while (current != null)
         {
             // Unwrap implicit conversions
-            while (current is IConversionOperation conversion) current = conversion.Operand;
+            current = current!.UnwrapConversions();
 
             if (current is IInvocationOperation prevInvocation)
             {
